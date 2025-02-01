@@ -27,12 +27,14 @@ endif
 
 # Set up the environment and install dependencies
 setup: install-uv
-	$(UV) sync
+	$(UV) sync --all-extras --dev
 
 # Run tests (pytest and mypy)
 test: setup
 	$(UV) run $(PYTEST) $(CHECKFILES)
 	$(UV) run $(MYPY) $(CHECKFILES)
+	$(UV) run $(RUFF) format --diff $(CHECKFILES)
+	$(UV) run $(RUFF) check --select I $(CHECKFILES)
 
 # Format and lint code (ruff)
 style: setup
