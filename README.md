@@ -64,7 +64,7 @@ Contributions are welcome! If you'd like to contribute to Pyttings, please follo
 3. Make your changes and ensure tests pass.
 4. Submit a pull request with a clear description of your changes.
 
-Please ensure your code follows the project's style and includes appropriate tests.
+Please ensure your code follows the project's style and includes appropriate tests. See the `Makefile`.
 
 ---
 
