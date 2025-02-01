@@ -1,6 +1,6 @@
 [project]
 name = "pyttings"
-version = "1.0.0"
+version = "1.1.0"
 description = "Python settings management with namespacing and modular files. Inspired by Django."
 readme = "README.md"
 requires-python = ">=3.10"
