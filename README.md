@@ -6,7 +6,7 @@ Lightweight Python settings management with namespacing and modular files. Inspi
 - **Namespaced Settings**: Use a prefix (e.g., `PYTTING_`) to avoid conflicts.
 - **Custom Prefix**: Change the prefix using `PYTTING_ENV_PREFIX`.
 - **Modular Settings**: Load settings from a module with `PYTTING_SETTINGS_MODULE`.
-- **Environment Variables**: Override settings easily.
+- **Environment Variables**: Override settings easily, with automatic type parsing.
 
 ## Installation
 
@@ -54,6 +54,21 @@ export PYTTING_ENV_PREFIX="MYAPP_"
 export MYAPP_DEBUG="False"
 ```
 Now, Pyttings will look for `MYAPP_DEBUG` instead of `PYTTING_DEBUG`.
+
+## Automatic Type Parsing
+
+If a setting is defined in `PYTTING_SETTINGS_MODULE` and overridden using an environment variable, Pyttings will attempt to parse the new value to match the type of the original setting. For example:
+```python
+# myapp/settings.py
+DEBUG = True  # Boolean
+timeout = 30  # Integer
+```
+```bash
+export PYTTING_DEBUG="False"
+export PYTTING_TIMEOUT="60"
+```
+
+Pyttings will automatically convert `PYTTING_DEBUG` to `False` (boolean) and `PYTTING_TIMEOUT` to `60` (integer), ensuring type consistency.
 
 ## Contributing
 
