@@ -1,7 +1,13 @@
+import ast
 import importlib
 import os
+from contextlib import suppress
 from functools import cached_property
 from typing import Any
+
+
+class SettingMisconfigured(TypeError):
+    pass
 
 
 class Settings:
@@ -23,32 +29,40 @@ class Settings:
         settings_module: str | None = os.getenv("PYTTING_SETTINGS_MODULE")
         if settings_module is None:
             raise ValueError(
-                "PYTTING_SETTINGS_MODULE environment variable is not set. "
+                "'PYTTING_SETTINGS_MODULE' environment variable is not set.\n"
                 "Please specify a settings module."
             )
         return settings_module
 
-    def _get_env_var(self, name: str) -> Any | None:
+    def get_env_var(self, name: str) -> Any | None:
         value = os.getenv(f"{self._env_prefix}{name}")
-        if value is None:
-            return None
 
-        if name not in self.defaults:
+        if value is None or name not in self.defaults:
             return value
 
-        value_type = type(self.defaults[name])
+        expected_type = type(self.defaults[name])
 
-        if value_type is bool:
+        if expected_type is bool:
             return value.lower() == "true"
+        elif expected_type in {list, tuple, set, dict}:
+            with suppress(SyntaxError, ValueError, TypeError):
+                parsed_value = ast.literal_eval(value)
+                if isinstance(parsed_value, expected_type):
+                    return expected_type(parsed_value)
+        elif expected_type is type(None):
+            return value
+        else:
+            with suppress(ValueError, TypeError):
+                return expected_type(value)
 
-        if value_type is type(None):
-            value_type = str
-
-        return value_type(value)
+        raise SettingMisconfigured(
+            f"Invalid type for {name} with configured value '{value}'."
+            f"\nExpected type {expected_type.__name__}."
+        )
 
     def __getattr__(self, name: str) -> Any:
         if name not in self._cache:
-            value: Any | None = self._get_env_var(name)
+            value: Any | None = self.get_env_var(name)
             if value is None:
                 if name in self.defaults:
                     value = self.defaults[name]
