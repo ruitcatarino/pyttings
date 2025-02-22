@@ -1,9 +1,10 @@
 import ast
 import importlib
 import os
+import types
 from contextlib import suppress
 from functools import cached_property
-from typing import Any
+from typing import Any, get_type_hints
 
 
 class SettingMisconfigured(TypeError):
@@ -16,15 +17,6 @@ class Settings:
         self._env_prefix: str = os.getenv("PYTTING_ENV_PREFIX", "PYTTING_")
         self._cache: dict[str, Any] = {}
 
-    @cached_property
-    def defaults(self) -> dict[str, Any]:
-        module = importlib.import_module(self._settings_module)
-        return {
-            key: getattr(module, key)
-            for key in dir(module)
-            if not key.startswith("__") and not key.endswith("__") and key.isupper()
-        }
-
     def _get_settings_module(self) -> str:
         settings_module: str | None = os.getenv("PYTTING_SETTINGS_MODULE")
         if settings_module is None:
@@ -34,13 +26,31 @@ class Settings:
             )
         return settings_module
 
+    @cached_property
+    def _module(self):
+        return importlib.import_module(self._settings_module)
+
+    @cached_property
+    def _type_hints(self) -> dict[str, Any]:
+        with suppress(ImportError, ValueError, TypeError):
+            return get_type_hints(self._module)
+        return {}
+
+    @cached_property
+    def defaults(self) -> dict[str, Any]:
+        return {
+            key: getattr(self._module, key)
+            for key in dir(self._module)
+            if not key.startswith("__") and not key.endswith("__") and key.isupper()
+        }
+
     def get_env_var(self, name: str) -> Any | None:
         value = os.getenv(f"{self._env_prefix}{name}")
 
         if value is None or name not in self.defaults:
             return value
 
-        expected_type = type(self.defaults[name])
+        expected_type = self._type_hints.get(name, type(self.defaults[name]))
 
         if expected_type is bool:
             return value.lower() == "true"
@@ -49,7 +59,7 @@ class Settings:
                 parsed_value = ast.literal_eval(value)
                 if isinstance(parsed_value, expected_type):
                     return expected_type(parsed_value)
-        elif expected_type is type(None):
+        elif expected_type is types.NoneType:
             return value
         else:
             with suppress(ValueError, TypeError):
@@ -57,7 +67,7 @@ class Settings:
 
         raise SettingMisconfigured(
             f"Invalid type for {name} with configured value '{value}'."
-            f"\nExpected type {expected_type.__name__}."
+            f"\nExpected {expected_type}."
         )
 
     def __getattr__(self, name: str) -> Any:
