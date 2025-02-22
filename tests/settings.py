@@ -13,6 +13,10 @@ SOME_TUPLE: tuple = ("a", "b", "c")
 SOME_SET: set = {"a", "b", "c"}
 SOME_UNION_TYPE: dict | str = "some_str"
 
+# Strict type hinted settings
+SOME_STRICT_DICT: dict[str, str] = {"a": "b", "c": "d"}
+SOME_STRICT_LIST: list[str] = ["a", "b", "c"]
+
 
 # Type hintless settings
 NO_TYPE_HINT_NONE = None

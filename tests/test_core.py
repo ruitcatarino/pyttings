@@ -134,6 +134,43 @@ def test_env_var_type_conversion_union():
     assert settings.SOME_UNION_TYPE == {"x": "y"}
 
 
+def test_env_var_type_conversion_strict():
+    os.environ["PYTTING_SOME_STRICT_DICT"] = '{"x": "y"}'
+    os.environ["PYTTING_SOME_STRICT_LIST"] = '["x", "y"]'
+    assert settings.SOME_STRICT_DICT == {"x": "y"}
+    assert settings.SOME_STRICT_LIST == ["x", "y"]
+
+    settings._cache.pop("SOME_STRICT_LIST")
+    os.environ["PYTTING_SOME_STRICT_LIST"] = "[1, 'x', 'y']"
+    with pytest.raises(
+        SettingMisconfigured,
+        match=r"Invalid type for SOME_STRICT_LIST with configured value '\[1, 'x', 'y'\]'\.\nExpected list\[str\]\.",
+    ):
+        _ = settings.SOME_STRICT_LIST
+
+    settings._cache.pop("SOME_STRICT_DICT")
+    os.environ["PYTTING_SOME_STRICT_DICT"] = "{1: 1}"
+    with pytest.raises(
+        SettingMisconfigured,
+        match=r"Invalid type for SOME_STRICT_DICT with configured value '{1: 1}'.\nExpected dict\[str, str\].",
+    ):
+        _ = settings.SOME_STRICT_DICT
+
+    os.environ["PYTTING_SOME_STRICT_DICT"] = "{'x': 1}"
+    with pytest.raises(
+        SettingMisconfigured,
+        match=r"Invalid type for SOME_STRICT_DICT with configured value '{'x': 1}'.\nExpected dict\[str, str\].",
+    ):
+        _ = settings.SOME_STRICT_DICT
+
+    os.environ["PYTTING_SOME_STRICT_DICT"] = "{1: 'x'}"
+    with pytest.raises(
+        SettingMisconfigured,
+        match=r"Invalid type for SOME_STRICT_DICT with configured value '{1: 'x'}'.\nExpected dict\[str, str\].",
+    ):
+        _ = settings.SOME_STRICT_DICT
+
+
 def test_env_var_type_conversion_no_type_hint():
     os.environ["PYTTING_NO_TYPE_HINT_INT"] = "99"
     os.environ["PYTTING_NO_TYPE_HINT_FLOAT"] = "2.71"
