@@ -12,6 +12,18 @@ def clear_settings_cache():
     settings._cache = {}
 
 
+# Test custom prefix
+def test_custom_prefix():
+    os.environ["PYTTING_ENV_PREFIX"] = "TEST_"
+    os.environ["PYTTING_SETTINGS_MODULE"] = "tests.settings"
+    os.environ["TEST_OTHER_SETTING"] = "test_value"
+    new_settings = Settings()
+    assert new_settings._env_prefix == "TEST_"
+    assert new_settings.DEBUG is True
+    assert new_settings.DATABASE_URL == "sqlite:///db.sqlite3"
+    assert new_settings.OTHER_SETTING == "test_value"
+
+
 # Test settings initialization
 def test_settings_initialization():
     assert settings.DEBUG is True
@@ -24,6 +36,7 @@ def test_settings_initialization():
     assert settings.SOME_SET == {"a", "b", "c"}
     assert settings.SOME_DICT == {"a": "b", "c": "d"}
     assert settings.NONE_VALUE is None
+    assert settings.SOME_UNION_TYPE == "some_str"
     assert settings.NO_TYPE_HINT_NONE is None
     assert settings.NO_TYPE_HINT_BOOL is True
     assert settings.NO_TYPE_HINT_INT == 1
@@ -33,18 +46,6 @@ def test_settings_initialization():
     assert settings.NO_TYPE_HINT_LIST == ["a", "b", "c"]
     assert settings.NO_TYPE_HINT_TUPLE == ("a", "b", "c")
     assert settings.NO_TYPE_HINT_SET == {"a", "b", "c"}
-
-
-# Test custom prefix
-def test_custom_prefix():
-    os.environ["PYTTING_ENV_PREFIX"] = "TEST_"
-    os.environ["PYTTING_SETTINGS_MODULE"] = "tests.settings"
-    os.environ["TEST_OTHER_SETTING"] = "test_value"
-    new_settings = Settings()
-    assert new_settings._env_prefix == "TEST_"
-    assert new_settings.DEBUG is True
-    assert new_settings.DATABASE_URL == "sqlite:///db.sqlite3"
-    assert new_settings.OTHER_SETTING == "test_value"
 
 
 # Test environment variable overrides
@@ -59,6 +60,7 @@ def test_env_var_overrides():
     os.environ["PYTTING_SOME_SET"] = '{"x", "y"}'
     os.environ["PYTTING_SOME_DICT"] = '{"x": "y"}'
     os.environ["PYTTING_NONE_VALUE"] = "some_value"
+    os.environ["PYTTING_SOME_UNION_TYPE"] = "some_other_str"
 
     assert settings.DEBUG is False
     assert settings.DATABASE_URL == "postgresql://user:pass@localhost/db"
@@ -70,6 +72,7 @@ def test_env_var_overrides():
     assert settings.SOME_SET == {"x", "y"}
     assert settings.SOME_DICT == {"x": "y"}
     assert settings.NONE_VALUE == "some_value"
+    assert settings.SOME_UNION_TYPE == "some_other_str"
 
 
 def test_env_var_overrides_no_type_hint():
@@ -121,6 +124,14 @@ def test_env_var_type_conversion():
     assert settings.DATABASE_URL == "mysql://user:pass@localhost/db"
     assert settings.SECRET_KEY == "another-secret-key"
     assert settings.PORT == 9090
+
+
+def test_env_var_type_conversion_union():
+    os.environ["PYTTING_SOME_UNION_TYPE"] = "some_other_str"
+    assert settings.SOME_UNION_TYPE == "some_other_str"
+    settings._cache.pop("SOME_UNION_TYPE")
+    os.environ["PYTTING_SOME_UNION_TYPE"] = '{"x": "y"}'
+    assert settings.SOME_UNION_TYPE == {"x": "y"}
 
 
 def test_env_var_type_conversion_no_type_hint():

@@ -11,6 +11,7 @@ SOME_DICT: dict = {"a": "b", "c": "d"}
 SOME_LIST: list = ["a", "b", "c"]
 SOME_TUPLE: tuple = ("a", "b", "c")
 SOME_SET: set = {"a", "b", "c"}
+SOME_UNION_TYPE: dict | str = "some_str"
 
 
 # Type hintless settings

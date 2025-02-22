@@ -1,7 +1,5 @@
-import ast
 import importlib
 import os
-import types
 from contextlib import suppress
 from functools import cached_property
 from typing import Any, get_type_hints
@@ -50,23 +48,7 @@ class Settings:
 
         expected_type = self._type_hints.get(name, type(self.defaults[name]))
 
-        if expected_type is bool:
-            return value.lower() == "true"
-        elif expected_type in {list, tuple, set, dict}:
-            with suppress(SyntaxError, ValueError, TypeError):
-                parsed_value = ast.literal_eval(value)
-                if isinstance(parsed_value, expected_type):
-                    return expected_type(parsed_value)
-        elif expected_type is types.NoneType:
-            return value
-        else:
-            with suppress(ValueError, TypeError):
-                return expected_type(value)
-
-        raise SettingMisconfigured(
-            f"Invalid type for {name} with configured value '{value}'."
-            f"\nExpected {expected_type}."
-        )
+        return convert_and_validate(name, value, expected_type)
 
     def __getattr__(self, name: str) -> Any:
         if name not in self._cache:
