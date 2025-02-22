@@ -3,7 +3,8 @@ import os
 import pytest
 
 from pyttings import settings
-from pyttings.core import SettingMisconfigured, Settings
+from pyttings.core import Settings
+from pyttings.exceptions import SettingMisconfigured
 
 
 @pytest.fixture(autouse=True)

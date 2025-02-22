@@ -6,9 +6,7 @@ from contextlib import suppress
 from functools import cached_property
 from typing import Any, get_type_hints
 
-
-class SettingMisconfigured(TypeError):
-    pass
+from pyttings.type_converter import convert_and_validate
 
 
 class Settings:
