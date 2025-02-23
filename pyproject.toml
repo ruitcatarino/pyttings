@@ -1,9 +1,24 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
 [project]
 name = "pyttings"
-version = "1.1.0"
+version = "2.0.0"
 description = "Python settings management with namespacing and modular files. Inspired by Django."
 readme = "README.md"
 requires-python = ">=3.10"
+license = { file = "LICENSE" }
+authors = [
+    { name = "Rui Catarino" }
+]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Programming Language :: Python :: 3",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
 dependencies = []
 
 [dependency-groups]
@@ -12,3 +27,11 @@ dev = [
     "pytest>=8.3.4",
     "ruff>=0.9.4",
 ]
+
+[project.urls]
+Homepage = "https://github.com/ruitcatarino/pyttings"
+Repository = "https://github.com/ruitcatarino/pyttings"
+Issues = "https://github.com/ruitcatarino/pyttings/issues"
+
+[tool.setuptools]
+packages = ["pyttings"]
