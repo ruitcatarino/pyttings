@@ -1,4 +1,5 @@
 import os
+from decimal import Decimal, InvalidOperation
 
 import pytest
 
@@ -37,6 +38,7 @@ def test_settings_initialization():
     assert settings.SOME_DICT == {"a": "b", "c": "d"}
     assert settings.NONE_VALUE is None
     assert settings.SOME_UNION_TYPE == "some_str"
+    assert settings.SOME_DECIMAL == Decimal("1.0")
     assert settings.NO_TYPE_HINT_NONE is None
     assert settings.NO_TYPE_HINT_BOOL is True
     assert settings.NO_TYPE_HINT_INT == 1
@@ -46,6 +48,7 @@ def test_settings_initialization():
     assert settings.NO_TYPE_HINT_LIST == ["a", "b", "c"]
     assert settings.NO_TYPE_HINT_TUPLE == ("a", "b", "c")
     assert settings.NO_TYPE_HINT_SET == {"a", "b", "c"}
+    assert settings.NO_TYPE_HINT_DECIMAL == Decimal("1.0")
 
 
 # Test environment variable overrides
@@ -61,6 +64,7 @@ def test_env_var_overrides():
     os.environ["PYTTING_SOME_DICT"] = '{"x": "y"}'
     os.environ["PYTTING_NONE_VALUE"] = "some_value"
     os.environ["PYTTING_SOME_UNION_TYPE"] = "some_other_str"
+    os.environ["PYTTING_SOME_DECIMAL"] = "2.0"
 
     assert settings.DEBUG is False
     assert settings.DATABASE_URL == "postgresql://user:pass@localhost/db"
@@ -73,6 +77,7 @@ def test_env_var_overrides():
     assert settings.SOME_DICT == {"x": "y"}
     assert settings.NONE_VALUE == "some_value"
     assert settings.SOME_UNION_TYPE == "some_other_str"
+    assert settings.SOME_DECIMAL == Decimal("2.0")
 
 
 def test_env_var_overrides_no_type_hint():
@@ -85,6 +90,7 @@ def test_env_var_overrides_no_type_hint():
     os.environ["PYTTING_NO_TYPE_HINT_LIST"] = '["x", "y"]'
     os.environ["PYTTING_NO_TYPE_HINT_TUPLE"] = '("x", "y")'
     os.environ["PYTTING_NO_TYPE_HINT_SET"] = '{"x", "y"}'
+    os.environ["PYTTING_NO_TYPE_HINT_DECIMAL"] = "3.14"
 
     assert settings.NO_TYPE_HINT_NONE == "tests.settings"
     assert settings.NO_TYPE_HINT_BOOL is False
@@ -95,6 +101,7 @@ def test_env_var_overrides_no_type_hint():
     assert settings.NO_TYPE_HINT_LIST == ["x", "y"]
     assert settings.NO_TYPE_HINT_TUPLE == ("x", "y")
     assert settings.NO_TYPE_HINT_SET == {"x", "y"}
+    assert settings.NO_TYPE_HINT_DECIMAL == Decimal("3.14")
 
 
 # Test environment variable type conversion
@@ -213,6 +220,7 @@ def test_env_var_type_conversion_failure():
     os.environ["PYTTING_SOME_TUPLE"] = "a"
     os.environ["PYTTING_PORT"] = ""
     os.environ["PYTTING_NO_TYPE_HINT_DICT"] = "123"
+    os.environ["PYTTING_NO_TYPE_HINT_DECIMAL"] = "A"
     with pytest.raises(
         SettingMisconfigured,
         match="Invalid type for SOME_LIST with configured value '1'.\nExpected <class 'list'>.",
@@ -236,3 +244,6 @@ def test_env_var_type_conversion_failure():
         match="Invalid type for NO_TYPE_HINT_DICT with configured value '123'.\nExpected <class 'dict'>.",
     ):
         _ = settings.NO_TYPE_HINT_DICT
+
+    with pytest.raises(InvalidOperation):
+        _ = settings.NO_TYPE_HINT_DECIMAL
