@@ -6,11 +6,28 @@ import pytest
 from pyttings import settings
 from pyttings.core import Settings
 from pyttings.exceptions import SettingMisconfigured
+from tests.utils import ListOfInts, MultipleArgsCustomClass
 
 
 @pytest.fixture(autouse=True)
 def clear_settings_cache():
     settings._cache = {}
+
+
+# Test missing settings module
+def test_missing_settings_module():
+    del os.environ["PYTTING_SETTINGS_MODULE"]
+    with pytest.raises(
+        ValueError,
+        match="'PYTTING_SETTINGS_MODULE' environment variable is not set.\nPlease specify a settings module.",
+    ):
+        Settings()
+
+
+# Test missing attribute
+def test_missing_attribute():
+    with pytest.raises(AttributeError, match="has no attribute 'MISSING_SETTING'"):
+        _ = settings.MISSING_SETTING
 
 
 # Test custom prefix
@@ -39,6 +56,8 @@ def test_settings_initialization():
     assert settings.NONE_VALUE is None
     assert settings.SOME_UNION_TYPE == "some_str"
     assert settings.SOME_DECIMAL == Decimal("1.0")
+    assert settings.SOME_CUSTOM_CLASS == ListOfInts([1, 2, 3])
+    assert settings.SOME_MULTIPLE_CUSTOM_CLASS == MultipleArgsCustomClass(1, "2", 3)
     assert settings.NO_TYPE_HINT_NONE is None
     assert settings.NO_TYPE_HINT_BOOL is True
     assert settings.NO_TYPE_HINT_INT == 1
@@ -65,6 +84,10 @@ def test_env_var_overrides():
     os.environ["PYTTING_NONE_VALUE"] = "some_value"
     os.environ["PYTTING_SOME_UNION_TYPE"] = "some_other_str"
     os.environ["PYTTING_SOME_DECIMAL"] = "2.0"
+    os.environ["PYTTING_SOME_CUSTOM_CLASS"] = "[1, 2, 3, 4]"
+    os.environ["PYTTING_SOME_MULTIPLE_CUSTOM_CLASS"] = (
+        '{"int_value": 3, "str_value": "2", "value": "1"}'
+    )
 
     assert settings.DEBUG is False
     assert settings.DATABASE_URL == "postgresql://user:pass@localhost/db"
@@ -78,8 +101,11 @@ def test_env_var_overrides():
     assert settings.NONE_VALUE == "some_value"
     assert settings.SOME_UNION_TYPE == "some_other_str"
     assert settings.SOME_DECIMAL == Decimal("2.0")
+    assert settings.SOME_CUSTOM_CLASS == ListOfInts([1, 2, 3, 4])
+    assert settings.SOME_MULTIPLE_CUSTOM_CLASS == MultipleArgsCustomClass(3, "2", "1")
 
 
+# Test environment variable overrides with no type hint
 def test_env_var_overrides_no_type_hint():
     os.environ["PYTTING_NO_TYPE_HINT_NONE"] = "tests.settings"
     os.environ["PYTTING_NO_TYPE_HINT_BOOL"] = "False"
@@ -133,51 +159,7 @@ def test_env_var_type_conversion():
     assert settings.PORT == 9090
 
 
-def test_env_var_type_conversion_union():
-    os.environ["PYTTING_SOME_UNION_TYPE"] = "some_other_str"
-    assert settings.SOME_UNION_TYPE == "some_other_str"
-    settings._cache.pop("SOME_UNION_TYPE")
-    os.environ["PYTTING_SOME_UNION_TYPE"] = '{"x": "y"}'
-    assert settings.SOME_UNION_TYPE == {"x": "y"}
-
-
-def test_env_var_type_conversion_strict():
-    os.environ["PYTTING_SOME_STRICT_DICT"] = '{"x": "y"}'
-    os.environ["PYTTING_SOME_STRICT_LIST"] = '["x", "y"]'
-    assert settings.SOME_STRICT_DICT == {"x": "y"}
-    assert settings.SOME_STRICT_LIST == ["x", "y"]
-
-    settings._cache.pop("SOME_STRICT_LIST")
-    os.environ["PYTTING_SOME_STRICT_LIST"] = "[1, 'x', 'y']"
-    with pytest.raises(
-        SettingMisconfigured,
-        match=r"Invalid type for SOME_STRICT_LIST with configured value '\[1, 'x', 'y'\]'\.\nExpected list\[str\]\.",
-    ):
-        _ = settings.SOME_STRICT_LIST
-
-    settings._cache.pop("SOME_STRICT_DICT")
-    os.environ["PYTTING_SOME_STRICT_DICT"] = "{1: 1}"
-    with pytest.raises(
-        SettingMisconfigured,
-        match=r"Invalid type for SOME_STRICT_DICT with configured value '{1: 1}'.\nExpected dict\[str, str\].",
-    ):
-        _ = settings.SOME_STRICT_DICT
-
-    os.environ["PYTTING_SOME_STRICT_DICT"] = "{'x': 1}"
-    with pytest.raises(
-        SettingMisconfigured,
-        match=r"Invalid type for SOME_STRICT_DICT with configured value '{'x': 1}'.\nExpected dict\[str, str\].",
-    ):
-        _ = settings.SOME_STRICT_DICT
-
-    os.environ["PYTTING_SOME_STRICT_DICT"] = "{1: 'x'}"
-    with pytest.raises(
-        SettingMisconfigured,
-        match=r"Invalid type for SOME_STRICT_DICT with configured value '{1: 'x'}'.\nExpected dict\[str, str\].",
-    ):
-        _ = settings.SOME_STRICT_DICT
-
-
+# Test environment variable type conversion with no type hint
 def test_env_var_type_conversion_no_type_hint():
     os.environ["PYTTING_NO_TYPE_HINT_INT"] = "99"
     os.environ["PYTTING_NO_TYPE_HINT_FLOAT"] = "2.71"
@@ -198,20 +180,68 @@ def test_env_var_type_conversion_no_type_hint():
     assert settings.NO_TYPE_HINT_DICT == {"new": "dict"}
 
 
-# Test missing settings module
-def test_missing_settings_module():
-    del os.environ["PYTTING_SETTINGS_MODULE"]
+# Test environment variable type conversion with union type
+def test_env_var_type_conversion_union():
+    os.environ["PYTTING_SOME_UNION_TYPE"] = "some_other_str"
+    assert settings.SOME_UNION_TYPE == "some_other_str"
+    settings._cache.pop("SOME_UNION_TYPE")
+    os.environ["PYTTING_SOME_UNION_TYPE"] = '{"x": "y"}'
+    assert settings.SOME_UNION_TYPE == {"x": "y"}
+
+
+def test_env_var_type_conversion_strict():
+    os.environ["PYTTING_SOME_STRICT_DICT"] = '{"x": "y"}'
+    os.environ["PYTTING_SOME_STRICT_LIST"] = '["x", "y"]'
+    assert settings.SOME_STRICT_DICT == {"x": "y"}
+    assert settings.SOME_STRICT_LIST == ["x", "y"]
+
+    settings._cache.pop("SOME_STRICT_LIST")
+    os.environ["PYTTING_SOME_STRICT_LIST"] = "[1, 'x', 'y']"
     with pytest.raises(
-        ValueError,
-        match="'PYTTING_SETTINGS_MODULE' environment variable is not set.\nPlease specify a settings module.",
+        SettingMisconfigured,
+        match=r"Invalid type for SOME_STRICT_LIST with configured value '.*'\.\nExpected list\[str\]\.",
     ):
-        Settings()
+        _ = settings.SOME_STRICT_LIST
+
+    settings._cache.pop("SOME_STRICT_DICT")
+    os.environ["PYTTING_SOME_STRICT_DICT"] = "{1: 1}"
+    with pytest.raises(
+        SettingMisconfigured,
+        match=r"Invalid type for SOME_STRICT_DICT with configured value '.*'\.\nExpected dict\[str, str\].",
+    ):
+        _ = settings.SOME_STRICT_DICT
+
+    os.environ["PYTTING_SOME_STRICT_DICT"] = "{'x': 1}"
+    with pytest.raises(
+        SettingMisconfigured,
+        match=r"Invalid type for SOME_STRICT_DICT with configured value '.*'\.\nExpected dict\[str, str\].",
+    ):
+        _ = settings.SOME_STRICT_DICT
+
+    os.environ["PYTTING_SOME_STRICT_DICT"] = "{1: 'x'}"
+    with pytest.raises(
+        SettingMisconfigured,
+        match=r"Invalid type for SOME_STRICT_DICT with configured value '.*'\.\nExpected dict\[str, str\].",
+    ):
+        _ = settings.SOME_STRICT_DICT
 
 
-# Test missing attribute
-def test_missing_attribute():
-    with pytest.raises(AttributeError, match="has no attribute 'MISSING_SETTING'"):
-        _ = settings.MISSING_SETTING
+# Test environment variable type conversion with custom class
+def test_env_var_type_conversion_strict_custom_class():
+    os.environ["PYTTING_SOME_CUSTOM_CLASS"] = '[1, 2, 3, "4"]'
+    os.environ["PYTTING_SOME_MULTIPLE_CUSTOM_CLASS"] = (
+        '{"int_value": [1], "str_value": "2", "value": "1"}'
+    )
+    with pytest.raises(
+        SettingMisconfigured,
+        match=r"Invalid type for SOME_CUSTOM_CLASS with configured value '.*'\.\nExpected list\[int\]\.",
+    ):
+        _ = settings.SOME_CUSTOM_CLASS
+    with pytest.raises(
+        SettingMisconfigured,
+        match=r"Invalid type for SOME_MULTIPLE_CUSTOM_CLASS with configured value '.*'\.\nExpected dict\[str, int \| str\]\.",
+    ):
+        _ = settings.SOME_MULTIPLE_CUSTOM_CLASS
 
 
 # Test failure to convert environment variable

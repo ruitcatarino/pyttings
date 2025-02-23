@@ -1,6 +1,8 @@
 # tests/settings.py
 from decimal import Decimal
 
+from tests.utils import ListOfInts, MultipleArgsCustomClass
+
 # Type hinted settings
 NONE_VALUE: None = None
 DEBUG: bool = True
@@ -12,12 +14,12 @@ SOME_DICT: dict = {"a": "b", "c": "d"}
 SOME_LIST: list = ["a", "b", "c"]
 SOME_TUPLE: tuple = ("a", "b", "c")
 SOME_SET: set = {"a", "b", "c"}
-SOME_UNION_TYPE: dict | str = "some_str"
 SOME_DECIMAL: Decimal = Decimal("1.0")
-
-# Strict type hinted settings
+SOME_UNION_TYPE: dict | str = "some_str"
 SOME_STRICT_DICT: dict[str, str] = {"a": "b", "c": "d"}
 SOME_STRICT_LIST: list[str] = ["a", "b", "c"]
+SOME_CUSTOM_CLASS: ListOfInts = ListOfInts([1, 2, 3])
+SOME_MULTIPLE_CUSTOM_CLASS: MultipleArgsCustomClass = MultipleArgsCustomClass(1, "2", 3)
 
 
 # Type hintless settings

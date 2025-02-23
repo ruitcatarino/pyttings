@@ -1,12 +1,23 @@
 import ast
+import inspect
+import os
 import types
 from contextlib import suppress
 from typing import Any, Type, TypeVar, get_args, get_origin
 
 from pyttings.exceptions import SettingMisconfigured
 
+CUSTOM_CLASS_METHOD_NAME = os.getenv(
+    "PYTTING_CUSTOM_CLASS_METHOD_NAME", "__pyttings_convert__"
+)
 CONTAINERS = (list, tuple, set, dict)
 ContainerType = TypeVar("ContainerType", list, tuple, set, dict)
+
+
+def is_custom_class(expected_type: type) -> bool:
+    return hasattr(expected_type, CUSTOM_CLASS_METHOD_NAME) and callable(
+        getattr(expected_type, CUSTOM_CLASS_METHOD_NAME)
+    )
 
 
 def convert_container(
@@ -58,10 +69,23 @@ def convert_and_validate(name: str, value: str, expected_type: type) -> Any:
             f"Expected one of {get_args(expected_type)}."
         )
 
-    type_args = get_args(expected_type) if origin else None
-
     if origin is None:
-        if expected_type is bool:
+        if is_custom_class(expected_type):
+            method = getattr(expected_type, CUSTOM_CLASS_METHOD_NAME)
+            params = list(inspect.signature(method).parameters.values())
+            if len(params) != 1:
+                raise SettingMisconfigured(
+                    f"Invalid method signature for {expected_type}. "
+                    f"Expected a single parameter."
+                )
+            param = params[0]
+            if param.annotation is inspect.Parameter.empty:
+                raise SettingMisconfigured(
+                    f"Invalid method signature for {expected_type}. "
+                    f"Expected a type hint for the parameter."
+                )
+            return method(convert_and_validate(name, value, param.annotation))
+        elif expected_type is bool:
             return value.lower() == "true"
         elif expected_type in CONTAINERS:
             converted_value = convert_container(value, expected_type)
@@ -75,7 +99,7 @@ def convert_and_validate(name: str, value: str, expected_type: type) -> Any:
     elif origin in CONTAINERS:
         converted_value = convert_container(value, origin)
         if converted_value is not None and validate_container_types(
-            converted_value, origin, type_args
+            converted_value, origin, get_args(expected_type)
         ):
             return converted_value
 
