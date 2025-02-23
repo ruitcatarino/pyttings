@@ -177,16 +177,21 @@ For example:
 
 ```python
 ALLOWED_HOSTS: list[str] = ["localhost"]
+SOME_STRICT_LIST: list[str] = ["localhost"]
 ```
 
 ```bash
 export PYTTING_ALLOWED_HOSTS="123"
+export PYTTING_SOME_STRICT_LIST=[1,2,3]
 ```
 
-Since `123` is not a valid list, Pyttings will raise:
+Since `123` is not a valid list and `[1,2,3]` is not a valid `list[str]`, Pyttings will raise:
 
 ```
 SettingMisconfigured: Invalid type for ALLOWED_HOSTS with configured value '123'.
+Expected list[str].
+
+SettingMisconfigured: Invalid type for SOME_STRICT_LIST with configured value '[1,2,3]'.
 Expected list[str].
 ```
 
