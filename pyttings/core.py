@@ -9,11 +9,13 @@ from pyttings.type_converter import convert_and_validate
 
 class Settings:
     def __init__(self) -> None:
-        self._settings_module: str = self._get_settings_module()
+        """Initialize the settings manager."""
+        self._settings_module: str = self._load_settings_module()
         self._env_prefix: str = os.getenv("PYTTING_ENV_PREFIX", "PYTTING_")
         self._cache: dict[str, Any] = {}
 
-    def _get_settings_module(self) -> str:
+    def _load_settings_module(self) -> str:
+        """Get the settings module name from environment variable."""
         settings_module: str | None = os.getenv("PYTTING_SETTINGS_MODULE")
         if settings_module is None:
             raise ValueError(
@@ -24,16 +26,19 @@ class Settings:
 
     @cached_property
     def _module(self):
+        """Import and cache the settings module."""
         return importlib.import_module(self._settings_module)
 
     @cached_property
     def _type_hints(self) -> dict[str, Any]:
+        """Get type hints from the settings module."""
         with suppress(ImportError, ValueError, TypeError):
             return get_type_hints(self._module)
         return {}
 
     @cached_property
     def defaults(self) -> dict[str, Any]:
+        """Get all uppercase attributes from the settings module as defaults."""
         return {
             key: getattr(self._module, key)
             for key in dir(self._module)
@@ -41,13 +46,13 @@ class Settings:
         }
 
     def get_env_var(self, name: str) -> Any | None:
-        value = os.getenv(f"{self._env_prefix}{name}")
+        """Get and convert environment variable for a setting."""
+        env_var_name = f"{self._env_prefix}{name}"
+        value = os.getenv(env_var_name)
 
         if value is None or name not in self.defaults:
             return value
-
         expected_type = self._type_hints.get(name, type(self.defaults[name]))
-
         return convert_and_validate(name, value, expected_type)
 
     def __getattr__(self, name: str) -> Any:
