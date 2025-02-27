@@ -89,7 +89,7 @@ def test_env_var_overrides_basic():
     os.environ["PYTTING_SECRET_KEY"] = "new-secret-key"
     os.environ["PYTTING_PORT"] = "8080"
     os.environ["PYTTING_ENABLE_FEATURE"] = "True"
-    
+
     assert settings.DEBUG is False
     assert settings.DATABASE_URL == "postgresql://user:pass@localhost/db"
     assert settings.SECRET_KEY == "new-secret-key"
@@ -103,7 +103,7 @@ def test_env_var_overrides_collections():
     os.environ["PYTTING_SOME_TUPLE"] = '("x", "y")'
     os.environ["PYTTING_SOME_SET"] = '{"x", "y"}'
     os.environ["PYTTING_SOME_DICT"] = '{"x": "y"}'
-    
+
     assert settings.SOME_LIST == ["x", "y"]
     assert settings.SOME_TUPLE == ("x", "y")
     assert settings.SOME_SET == {"x", "y"}
@@ -115,7 +115,7 @@ def test_env_var_overrides_special_types():
     os.environ["PYTTING_NONE_VALUE"] = "some_value"
     os.environ["PYTTING_SOME_UNION_TYPE"] = "some_other_str"
     os.environ["PYTTING_SOME_DECIMAL"] = "2.0"
-    
+
     assert settings.NONE_VALUE == "some_value"
     assert settings.SOME_UNION_TYPE == "some_other_str"
     assert settings.SOME_DECIMAL == Decimal("2.0")
@@ -127,7 +127,7 @@ def test_env_var_overrides_custom_classes():
     os.environ["PYTTING_SOME_MULTIPLE_CUSTOM_CLASS"] = (
         '{"int_value": 3, "str_value": "2", "value": "1"}'
     )
-    
+
     assert settings.SOME_CUSTOM_CLASS == ListOfInts([1, 2, 3, 4])
     assert settings.SOME_MULTIPLE_CUSTOM_CLASS == MultipleArgsCustomClass(3, "2", "1")
 
@@ -139,7 +139,7 @@ def test_env_var_overrides_no_type_hint_simple():
     os.environ["PYTTING_NO_TYPE_HINT_INT"] = "42"
     os.environ["PYTTING_NO_TYPE_HINT_FLOAT"] = "3.14"
     os.environ["PYTTING_NO_TYPE_HINT_STR"] = "override"
-    
+
     assert settings.NO_TYPE_HINT_NONE == "tests.settings"
     assert settings.NO_TYPE_HINT_BOOL is False
     assert settings.NO_TYPE_HINT_INT == 42
@@ -153,7 +153,7 @@ def test_env_var_overrides_no_type_hint_collections():
     os.environ["PYTTING_NO_TYPE_HINT_TUPLE"] = '("x", "y")'
     os.environ["PYTTING_NO_TYPE_HINT_SET"] = '{"x", "y"}'
     os.environ["PYTTING_NO_TYPE_HINT_DECIMAL"] = "3.14"
-    
+
     assert settings.NO_TYPE_HINT_DICT == {"x": "y"}
     assert settings.NO_TYPE_HINT_LIST == ["x", "y"]
     assert settings.NO_TYPE_HINT_TUPLE == ("x", "y")
@@ -166,7 +166,7 @@ def test_env_var_type_conversion_collections():
     os.environ["PYTTING_SOME_LIST"] = '["a", "b", "c", "d"]'
     os.environ["PYTTING_SOME_TUPLE"] = "(1,2,3)"
     os.environ["PYTTING_SOME_SET"] = '{"a", "b", "c", 1, 2, 3}'
-    
+
     assert settings.SOME_LIST == ["a", "b", "c", "d"]
     assert settings.SOME_TUPLE == (1, 2, 3)
     assert settings.SOME_SET == {"a", "b", "c", 1, 2, 3}
@@ -176,7 +176,7 @@ def test_env_var_type_conversion_complex_dict():
     os.environ["PYTTING_SOME_DICT"] = (
         '{"a": "b", "c": "d", "another_dict": {"a": 1, "b": 2, "c": 3}}'
     )
-    
+
     assert settings.SOME_DICT == {
         "a": "b",
         "c": "d",
@@ -200,7 +200,7 @@ def test_env_var_type_conversion_union_dict():
 def test_env_var_type_conversion_strict_valid():
     os.environ["PYTTING_SOME_STRICT_DICT"] = '{"x": "y"}'
     os.environ["PYTTING_SOME_STRICT_LIST"] = '["x", "y"]'
-    
+
     assert settings.SOME_STRICT_DICT == {"x": "y"}
     assert settings.SOME_STRICT_LIST == ["x", "y"]
 
@@ -208,7 +208,7 @@ def test_env_var_type_conversion_strict_valid():
 def test_env_var_type_conversion_strict_list_invalid():
     settings._cache.pop("SOME_STRICT_LIST", None)
     os.environ["PYTTING_SOME_STRICT_LIST"] = "[1, 'x', 'y']"
-    
+
     with pytest.raises(
         SettingMisconfigured,
         match=r"Invalid type for SOME_STRICT_LIST with configured value '.*'\.\nExpected list\[str\]\.",
@@ -219,7 +219,7 @@ def test_env_var_type_conversion_strict_list_invalid():
 def test_env_var_type_conversion_strict_dict_invalid_key():
     settings._cache.pop("SOME_STRICT_DICT", None)
     os.environ["PYTTING_SOME_STRICT_DICT"] = "{1: 1}"
-    
+
     with pytest.raises(
         SettingMisconfigured,
         match=r"Invalid type for SOME_STRICT_DICT with configured value '.*'\.\nExpected dict\[str, str\].",
@@ -230,7 +230,7 @@ def test_env_var_type_conversion_strict_dict_invalid_key():
 def test_env_var_type_conversion_strict_dict_invalid_value():
     settings._cache.pop("SOME_STRICT_DICT", None)
     os.environ["PYTTING_SOME_STRICT_DICT"] = "{'x': 1}"
-    
+
     with pytest.raises(
         SettingMisconfigured,
         match=r"Invalid type for SOME_STRICT_DICT with configured value '.*'\.\nExpected dict\[str, str\].",
@@ -241,7 +241,7 @@ def test_env_var_type_conversion_strict_dict_invalid_value():
 def test_env_var_type_conversion_strict_dict_invalid_key_type():
     settings._cache.pop("SOME_STRICT_DICT", None)
     os.environ["PYTTING_SOME_STRICT_DICT"] = "{1: 'x'}"
-    
+
     with pytest.raises(
         SettingMisconfigured,
         match=r"Invalid type for SOME_STRICT_DICT with configured value '.*'\.\nExpected dict\[str, str\].",
@@ -252,7 +252,7 @@ def test_env_var_type_conversion_strict_dict_invalid_key_type():
 # Test custom class validation
 def test_env_var_type_conversion_strict_custom_class_invalid_list():
     os.environ["PYTTING_SOME_CUSTOM_CLASS"] = '[1, 2, 3, "4"]'
-    
+
     with pytest.raises(
         SettingMisconfigured,
         match=r"Invalid type for SOME_CUSTOM_CLASS with configured value '.*'\.\nExpected list\[int\]\.",
@@ -264,7 +264,7 @@ def test_env_var_type_conversion_strict_custom_class_invalid_dict():
     os.environ["PYTTING_SOME_MULTIPLE_CUSTOM_CLASS"] = (
         '{"int_value": [1], "str_value": "2", "value": "1"}'
     )
-    
+
     with pytest.raises(
         SettingMisconfigured,
         match=r"Invalid type for SOME_MULTIPLE_CUSTOM_CLASS with configured value '.*'\.\nExpected dict\[str, int \| str\]\.",
@@ -275,7 +275,7 @@ def test_env_var_type_conversion_strict_custom_class_invalid_dict():
 # Test type conversion failures
 def test_env_var_type_conversion_failure_list():
     os.environ["PYTTING_SOME_LIST"] = "1"
-    
+
     with pytest.raises(
         SettingMisconfigured,
         match="Invalid type for SOME_LIST with configured value '1'.\nExpected <class 'list'>.",
@@ -285,7 +285,7 @@ def test_env_var_type_conversion_failure_list():
 
 def test_env_var_type_conversion_failure_tuple():
     os.environ["PYTTING_SOME_TUPLE"] = "a"
-    
+
     with pytest.raises(
         SettingMisconfigured,
         match="Invalid type for SOME_TUPLE with configured value 'a'.\nExpected <class 'tuple'>.",
@@ -295,7 +295,7 @@ def test_env_var_type_conversion_failure_tuple():
 
 def test_env_var_type_conversion_failure_int():
     os.environ["PYTTING_PORT"] = ""
-    
+
     with pytest.raises(
         SettingMisconfigured,
         match="Invalid type for PORT with configured value ''.\nExpected <class 'int'>.",
@@ -305,7 +305,7 @@ def test_env_var_type_conversion_failure_int():
 
 def test_env_var_type_conversion_failure_dict():
     os.environ["PYTTING_NO_TYPE_HINT_DICT"] = "123"
-    
+
     with pytest.raises(
         SettingMisconfigured,
         match="Invalid type for NO_TYPE_HINT_DICT with configured value '123'.\nExpected <class 'dict'>.",
@@ -315,6 +315,6 @@ def test_env_var_type_conversion_failure_dict():
 
 def test_env_var_type_conversion_failure_decimal():
     os.environ["PYTTING_NO_TYPE_HINT_DECIMAL"] = "A"
-    
+
     with pytest.raises(InvalidOperation):
         _ = settings.NO_TYPE_HINT_DECIMAL
