@@ -14,22 +14,24 @@ Types of changes:
 - **Security** in case of vulnerabilities.
 
 
-## [Unreleased](https://github.com/ruitcatarino/pyttings/compare/2.0.0...HEAD)
+## [Unreleased](https://github.com/ruitcatarino/pyttings/compare/2.1.0...HEAD)
+
+## [2.1.0](https://github.com/ruitcatarino/pyttings/compare/2.0.0...2.1.0) - 27-02-2025
 ### Fixed
 - Fixed detection and support for `typing.Union`, ensuring compatibility alongside `|`
 
-## [2.0.0](https://github.com/ruitcatarino/pyttings/compare/1.1.0...2.0.0) - 2025-02-23
+## [2.0.0](https://github.com/ruitcatarino/pyttings/compare/1.1.0...2.0.0) - 23-02-2025
 ### Added
 - Type Hint Support: Automatically converts environment variables to their expected types
 - Union Type Support: Allows settings to accept multiple possible types
 - Collection Type Validation: Ensures list, tuple, set, and dict elements match expected types
 - Custom Class Parsers: Supports `__pyttings_convert__` or a user-defined method for parsing settings into custom objects
 
-## [1.1.0](https://github.com/ruitcatarino/pyttings/compare/1.0.0...1.1.0) - 2025-02-01
+## [1.1.0](https://github.com/ruitcatarino/pyttings/compare/1.0.0...1.1.0) - 01-02-2025
 ### Added
 - Improved documentation and examples
 
-## [1.0.0](https://github.com/ruitcatarino/pyttings/compare/0.1.0...1.0.0) - 2025-02-01
+## [1.0.0](https://github.com/ruitcatarino/pyttings/compare/0.1.0...1.0.0) - 01-02-2025
 ### Added
 - Improved documentation
 - Improved the `Makefile`
@@ -37,7 +39,7 @@ Types of changes:
 ### Changed
 - Changed required python version to 3.10
 
-## [0.1.0](https://github.com/ruitcatarino/pyttings/compare/e94e2b9198c21eb73d13cd9dc63409824883ad50...0.1.0) - 2025-02-01
+## [0.1.0](https://github.com/ruitcatarino/pyttings/compare/e94e2b9198c21eb73d13cd9dc63409824883ad50...0.1.0) - 01-02-2025
 ### Added
 - Added class `Settings` and logic associated with it
 - Create `Makefile` to make development and testing easier
