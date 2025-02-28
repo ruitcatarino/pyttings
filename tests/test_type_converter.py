@@ -13,37 +13,7 @@ from pyttings.type_converter import (
     is_custom_class,
     validate_container_types,
 )
-
-
-class SimpleCustomClass:
-    def __init__(self, value):
-        self.value = value
-
-    @classmethod
-    def __pyttings_convert__(cls, value: List[int]):
-        return cls(value)
-
-    def __eq__(self, other):
-        if not isinstance(other, SimpleCustomClass):
-            return False
-        return self.value == other.value
-
-
-class InvalidCustomClass:
-    @classmethod
-    def __pyttings_convert__(cls):
-        # Missing parameter
-        return cls()
-
-
-class UntypedCustomClass:
-    @classmethod
-    def __pyttings_convert__(cls, value):
-        # Missing type hint
-        return cls(value)
-
-    def __init__(self, value):
-        self.value = value
+from tests.utils import InvalidCustomClass, SimpleCustomClass, UntypedCustomClass
 
 
 # Test is_custom_class function

@@ -10,16 +10,13 @@ from tests.utils import ListOfInts, MultipleArgsCustomClass
 
 
 @pytest.fixture(autouse=True)
-def reset_env_and_cache():
-    original_env = os.environ.copy()
+def reset_settings_cache():
     settings._cache = {}
-    yield
-    os.environ = original_env
 
 
 # Test missing settings module
-def test_missing_settings_module():
-    del os.environ["PYTTING_SETTINGS_MODULE"]
+def test_missing_settings_module(monkeypatch):
+    monkeypatch.delenv("PYTTING_SETTINGS_MODULE")
     with pytest.raises(
         ValueError,
         match="'PYTTING_SETTINGS_MODULE' environment variable is not set.\nPlease specify a settings module.",
@@ -34,10 +31,10 @@ def test_missing_attribute():
 
 
 # Test custom prefix
-def test_custom_prefix():
-    os.environ["PYTTING_ENV_PREFIX"] = "TEST_"
-    os.environ["PYTTING_SETTINGS_MODULE"] = "tests.settings"
-    os.environ["TEST_OTHER_SETTING"] = "test_value"
+def test_custom_prefix(monkeypatch):
+    monkeypatch.setenv("PYTTING_ENV_PREFIX", "TEST_")
+    monkeypatch.setenv("PYTTING_SETTINGS_MODULE", "tests.settings")
+    monkeypatch.setenv("TEST_OTHER_SETTING", "test_value")
     new_settings = Settings()
     assert new_settings._env_prefix == "TEST_"
     assert new_settings.DEBUG is True
@@ -86,12 +83,12 @@ def test_settings_no_type_hints_collections():
 
 
 # Test environment variable overrides - basic types
-def test_env_var_overrides_basic():
-    os.environ["PYTTING_DEBUG"] = "False"
-    os.environ["PYTTING_DATABASE_URL"] = "postgresql://user:pass@localhost/db"
-    os.environ["PYTTING_SECRET_KEY"] = "new-secret-key"
-    os.environ["PYTTING_PORT"] = "8080"
-    os.environ["PYTTING_ENABLE_FEATURE"] = "True"
+def test_env_var_overrides_basic(monkeypatch):
+    monkeypatch.setenv("PYTTING_DEBUG", "False")
+    monkeypatch.setenv("PYTTING_DATABASE_URL", "postgresql://user:pass@localhost/db")
+    monkeypatch.setenv("PYTTING_SECRET_KEY", "new-secret-key")
+    monkeypatch.setenv("PYTTING_PORT", "8080")
+    monkeypatch.setenv("PYTTING_ENABLE_FEATURE", "True")
 
     assert settings.DEBUG is False
     assert settings.DATABASE_URL == "postgresql://user:pass@localhost/db"
@@ -101,11 +98,11 @@ def test_env_var_overrides_basic():
 
 
 # Test environment variable overrides - collections
-def test_env_var_overrides_collections():
-    os.environ["PYTTING_SOME_LIST"] = '["x", "y"]'
-    os.environ["PYTTING_SOME_TUPLE"] = '("x", "y")'
-    os.environ["PYTTING_SOME_SET"] = '{"x", "y"}'
-    os.environ["PYTTING_SOME_DICT"] = '{"x": "y"}'
+def test_env_var_overrides_collections(monkeypatch):
+    monkeypatch.setenv("PYTTING_SOME_LIST", '["x", "y"]')
+    monkeypatch.setenv("PYTTING_SOME_TUPLE", '("x", "y")')
+    monkeypatch.setenv("PYTTING_SOME_SET", '{"x", "y"}')
+    monkeypatch.setenv("PYTTING_SOME_DICT", '{"x": "y"}')
 
     assert settings.SOME_LIST == ["x", "y"]
     assert settings.SOME_TUPLE == ("x", "y")
@@ -114,10 +111,10 @@ def test_env_var_overrides_collections():
 
 
 # Test environment variable overrides - special types
-def test_env_var_overrides_special_types():
-    os.environ["PYTTING_NONE_VALUE"] = "some_value"
-    os.environ["PYTTING_SOME_UNION_TYPE"] = "some_other_str"
-    os.environ["PYTTING_SOME_DECIMAL"] = "2.0"
+def test_env_var_overrides_special_types(monkeypatch):
+    monkeypatch.setenv("PYTTING_NONE_VALUE", "some_value")
+    monkeypatch.setenv("PYTTING_SOME_UNION_TYPE", "some_other_str")
+    monkeypatch.setenv("PYTTING_SOME_DECIMAL", "2.0")
 
     assert settings.NONE_VALUE == "some_value"
     assert settings.SOME_UNION_TYPE == "some_other_str"
@@ -125,10 +122,11 @@ def test_env_var_overrides_special_types():
 
 
 # Test environment variable overrides - custom classes
-def test_env_var_overrides_custom_classes():
-    os.environ["PYTTING_SOME_CUSTOM_CLASS"] = "[1, 2, 3, 4]"
-    os.environ["PYTTING_SOME_MULTIPLE_CUSTOM_CLASS"] = (
-        '{"int_value": 3, "str_value": "2", "value": "1"}'
+def test_env_var_overrides_custom_classes(monkeypatch):
+    monkeypatch.setenv("PYTTING_SOME_CUSTOM_CLASS", "[1, 2, 3, 4]")
+    monkeypatch.setenv(
+        "PYTTING_SOME_MULTIPLE_CUSTOM_CLASS",
+        '{"int_value": 3, "str_value": "2", "value": "1"}',
     )
 
     assert settings.SOME_CUSTOM_CLASS == ListOfInts([1, 2, 3, 4])
@@ -136,12 +134,12 @@ def test_env_var_overrides_custom_classes():
 
 
 # Test environment variable overrides - no type hints
-def test_env_var_overrides_no_type_hint_simple():
-    os.environ["PYTTING_NO_TYPE_HINT_NONE"] = "tests.settings"
-    os.environ["PYTTING_NO_TYPE_HINT_BOOL"] = "False"
-    os.environ["PYTTING_NO_TYPE_HINT_INT"] = "42"
-    os.environ["PYTTING_NO_TYPE_HINT_FLOAT"] = "3.14"
-    os.environ["PYTTING_NO_TYPE_HINT_STR"] = "override"
+def test_env_var_overrides_no_type_hint_simple(monkeypatch):
+    monkeypatch.setenv("PYTTING_NO_TYPE_HINT_NONE", "tests.settings")
+    monkeypatch.setenv("PYTTING_NO_TYPE_HINT_BOOL", "False")
+    monkeypatch.setenv("PYTTING_NO_TYPE_HINT_INT", "42")
+    monkeypatch.setenv("PYTTING_NO_TYPE_HINT_FLOAT", "3.14")
+    monkeypatch.setenv("PYTTING_NO_TYPE_HINT_STR", "override")
 
     assert settings.NO_TYPE_HINT_NONE == "tests.settings"
     assert settings.NO_TYPE_HINT_BOOL is False
@@ -150,12 +148,12 @@ def test_env_var_overrides_no_type_hint_simple():
     assert settings.NO_TYPE_HINT_STR == "override"
 
 
-def test_env_var_overrides_no_type_hint_collections():
-    os.environ["PYTTING_NO_TYPE_HINT_DICT"] = '{"x": "y"}'
-    os.environ["PYTTING_NO_TYPE_HINT_LIST"] = '["x", "y"]'
-    os.environ["PYTTING_NO_TYPE_HINT_TUPLE"] = '("x", "y")'
-    os.environ["PYTTING_NO_TYPE_HINT_SET"] = '{"x", "y"}'
-    os.environ["PYTTING_NO_TYPE_HINT_DECIMAL"] = "3.14"
+def test_env_var_overrides_no_type_hint_collections(monkeypatch):
+    monkeypatch.setenv("PYTTING_NO_TYPE_HINT_DICT", '{"x": "y"}')
+    monkeypatch.setenv("PYTTING_NO_TYPE_HINT_LIST", '["x", "y"]')
+    monkeypatch.setenv("PYTTING_NO_TYPE_HINT_TUPLE", '("x", "y")')
+    monkeypatch.setenv("PYTTING_NO_TYPE_HINT_SET", '{"x", "y"}')
+    monkeypatch.setenv("PYTTING_NO_TYPE_HINT_DECIMAL", "3.14")
 
     assert settings.NO_TYPE_HINT_DICT == {"x": "y"}
     assert settings.NO_TYPE_HINT_LIST == ["x", "y"]
@@ -165,19 +163,20 @@ def test_env_var_overrides_no_type_hint_collections():
 
 
 # Test complex environment variable type conversions
-def test_env_var_type_conversion_collections():
-    os.environ["PYTTING_SOME_LIST"] = '["a", "b", "c", "d"]'
-    os.environ["PYTTING_SOME_TUPLE"] = "(1,2,3)"
-    os.environ["PYTTING_SOME_SET"] = '{"a", "b", "c", 1, 2, 3}'
+def test_env_var_type_conversion_collections(monkeypatch):
+    monkeypatch.setenv("PYTTING_SOME_LIST", '["a", "b", "c", "d"]')
+    monkeypatch.setenv("PYTTING_SOME_TUPLE", "(1,2,3)")
+    monkeypatch.setenv("PYTTING_SOME_SET", '{"a", "b", "c", 1, 2, 3}')
 
     assert settings.SOME_LIST == ["a", "b", "c", "d"]
     assert settings.SOME_TUPLE == (1, 2, 3)
     assert settings.SOME_SET == {"a", "b", "c", 1, 2, 3}
 
 
-def test_env_var_type_conversion_complex_dict():
-    os.environ["PYTTING_SOME_DICT"] = (
-        '{"a": "b", "c": "d", "another_dict": {"a": 1, "b": 2, "c": 3}}'
+def test_env_var_type_conversion_complex_dict(monkeypatch):
+    monkeypatch.setenv(
+        "PYTTING_SOME_DICT",
+        '{"a": "b", "c": "d", "another_dict": {"a": 1, "b": 2, "c": 3}}',
     )
 
     assert settings.SOME_DICT == {
@@ -188,27 +187,27 @@ def test_env_var_type_conversion_complex_dict():
 
 
 # Test union type conversion
-def test_env_var_type_conversion_union_str():
-    os.environ["PYTTING_SOME_UNION_TYPE"] = "some_other_str"
+def test_env_var_type_conversion_union_str(monkeypatch):
+    monkeypatch.setenv("PYTTING_SOME_UNION_TYPE", "some_other_str")
     assert settings.SOME_UNION_TYPE == "some_other_str"
 
 
-def test_env_var_type_conversion_union_dict():
-    os.environ["PYTTING_SOME_UNION_TYPE"] = '{"x": "y"}'
+def test_env_var_type_conversion_union_dict(monkeypatch):
+    monkeypatch.setenv("PYTTING_SOME_UNION_TYPE", '{"x": "y"}')
     assert settings.SOME_UNION_TYPE == {"x": "y"}
 
 
 # Test strict type checking
-def test_env_var_type_conversion_strict_valid():
-    os.environ["PYTTING_SOME_STRICT_DICT"] = '{"x": "y"}'
-    os.environ["PYTTING_SOME_STRICT_LIST"] = '["x", "y"]'
+def test_env_var_type_conversion_strict_valid(monkeypatch):
+    monkeypatch.setenv("PYTTING_SOME_STRICT_DICT", '{"x": "y"}')
+    monkeypatch.setenv("PYTTING_SOME_STRICT_LIST", '["x", "y"]')
 
     assert settings.SOME_STRICT_DICT == {"x": "y"}
     assert settings.SOME_STRICT_LIST == ["x", "y"]
 
 
-def test_env_var_type_conversion_strict_list_invalid():
-    os.environ["PYTTING_SOME_STRICT_LIST"] = "[1, 'x', 'y']"
+def test_env_var_type_conversion_strict_list_invalid(monkeypatch):
+    monkeypatch.setenv("PYTTING_SOME_STRICT_LIST", "[1, 'x', 'y']")
 
     with pytest.raises(
         SettingMisconfigured,
@@ -217,8 +216,8 @@ def test_env_var_type_conversion_strict_list_invalid():
         _ = settings.SOME_STRICT_LIST
 
 
-def test_env_var_type_conversion_strict_dict_invalid_key():
-    os.environ["PYTTING_SOME_STRICT_DICT"] = "{1: 1}"
+def test_env_var_type_conversion_strict_dict_invalid_key(monkeypatch):
+    monkeypatch.setenv("PYTTING_SOME_STRICT_DICT", "{1: 1}")
 
     with pytest.raises(
         SettingMisconfigured,
@@ -227,8 +226,8 @@ def test_env_var_type_conversion_strict_dict_invalid_key():
         _ = settings.SOME_STRICT_DICT
 
 
-def test_env_var_type_conversion_strict_dict_invalid_value():
-    os.environ["PYTTING_SOME_STRICT_DICT"] = "{'x': 1}"
+def test_env_var_type_conversion_strict_dict_invalid_value(monkeypatch):
+    monkeypatch.setenv("PYTTING_SOME_STRICT_DICT", "{'x': 1}")
 
     with pytest.raises(
         SettingMisconfigured,
@@ -237,8 +236,8 @@ def test_env_var_type_conversion_strict_dict_invalid_value():
         _ = settings.SOME_STRICT_DICT
 
 
-def test_env_var_type_conversion_strict_dict_invalid_key_type():
-    os.environ["PYTTING_SOME_STRICT_DICT"] = "{1: 'x'}"
+def test_env_var_type_conversion_strict_dict_invalid_key_type(monkeypatch):
+    monkeypatch.setenv("PYTTING_SOME_STRICT_DICT", "{1: 'x'}")
 
     with pytest.raises(
         SettingMisconfigured,
@@ -248,8 +247,8 @@ def test_env_var_type_conversion_strict_dict_invalid_key_type():
 
 
 # Test custom class validation
-def test_env_var_type_conversion_strict_custom_class_invalid_list():
-    os.environ["PYTTING_SOME_CUSTOM_CLASS"] = '[1, 2, 3, "4"]'
+def test_env_var_type_conversion_strict_custom_class_invalid_list(monkeypatch):
+    monkeypatch.setenv("PYTTING_SOME_CUSTOM_CLASS", '[1, 2, 3, "4"]')
 
     with pytest.raises(
         SettingMisconfigured,
@@ -258,9 +257,10 @@ def test_env_var_type_conversion_strict_custom_class_invalid_list():
         _ = settings.SOME_CUSTOM_CLASS
 
 
-def test_env_var_type_conversion_strict_custom_class_invalid_dict():
-    os.environ["PYTTING_SOME_MULTIPLE_CUSTOM_CLASS"] = (
-        '{"int_value": [1], "str_value": "2", "value": "1"}'
+def test_env_var_type_conversion_strict_custom_class_invalid_dict(monkeypatch):
+    monkeypatch.setenv(
+        "PYTTING_SOME_MULTIPLE_CUSTOM_CLASS",
+        '{"int_value": [1], "str_value": "2", "value": "1"}',
     )
 
     with pytest.raises(
@@ -271,8 +271,8 @@ def test_env_var_type_conversion_strict_custom_class_invalid_dict():
 
 
 # Test type conversion failures
-def test_env_var_type_conversion_failure_list():
-    os.environ["PYTTING_SOME_LIST"] = "1"
+def test_env_var_type_conversion_failure_list(monkeypatch):
+    monkeypatch.setenv("PYTTING_SOME_LIST", "1")
 
     with pytest.raises(
         SettingMisconfigured,
@@ -281,8 +281,8 @@ def test_env_var_type_conversion_failure_list():
         _ = settings.SOME_LIST
 
 
-def test_env_var_type_conversion_failure_tuple():
-    os.environ["PYTTING_SOME_TUPLE"] = "a"
+def test_env_var_type_conversion_failure_tuple(monkeypatch):
+    monkeypatch.setenv("PYTTING_SOME_TUPLE", "a")
 
     with pytest.raises(
         SettingMisconfigured,
@@ -291,8 +291,8 @@ def test_env_var_type_conversion_failure_tuple():
         _ = settings.SOME_TUPLE
 
 
-def test_env_var_type_conversion_failure_int():
-    os.environ["PYTTING_PORT"] = ""
+def test_env_var_type_conversion_failure_int(monkeypatch):
+    monkeypatch.setenv("PYTTING_PORT", "")
 
     with pytest.raises(
         SettingMisconfigured,
@@ -301,8 +301,8 @@ def test_env_var_type_conversion_failure_int():
         _ = settings.PORT
 
 
-def test_env_var_type_conversion_failure_dict():
-    os.environ["PYTTING_NO_TYPE_HINT_DICT"] = "123"
+def test_env_var_type_conversion_failure_dict(monkeypatch):
+    monkeypatch.setenv("PYTTING_NO_TYPE_HINT_DICT", "123")
 
     with pytest.raises(
         SettingMisconfigured,
@@ -311,8 +311,8 @@ def test_env_var_type_conversion_failure_dict():
         _ = settings.NO_TYPE_HINT_DICT
 
 
-def test_env_var_type_conversion_failure_decimal():
-    os.environ["PYTTING_NO_TYPE_HINT_DECIMAL"] = "A"
+def test_env_var_type_conversion_failure_decimal(monkeypatch):
+    monkeypatch.setenv("PYTTING_NO_TYPE_HINT_DECIMAL", "A")
 
     with pytest.raises(InvalidOperation):
         _ = settings.NO_TYPE_HINT_DECIMAL
@@ -324,14 +324,14 @@ def test_settings_eager_loading():
     assert eager_settings._cache == eager_settings.defaults
 
 
-def test_settings_eager_loading_override():
-    os.environ["PYTTING_DEBUG"] = "False"
+def test_settings_eager_loading_override(monkeypatch):
+    monkeypatch.setenv("PYTTING_DEBUG", "False")
     eager_settings = Settings(lazy_load=False)
     assert "DEBUG" in eager_settings._cache
 
 
-def test_env_var_type_conversion_strict_list_invalid_eager():
-    os.environ["PYTTING_SOME_STRICT_LIST"] = "[1, 'x', 'y']"
+def test_env_var_type_conversion_strict_list_invalid_eager(monkeypatch):
+    monkeypatch.setenv("PYTTING_SOME_STRICT_LIST", "[1, 'x', 'y']")
     with pytest.raises(
         SettingMisconfigured,
         match=r"Invalid type for SOME_STRICT_LIST with configured value '.*'\.\nExpected list\[str\]\.",
@@ -339,14 +339,14 @@ def test_env_var_type_conversion_strict_list_invalid_eager():
         _ = Settings(lazy_load=False)
 
 
-def test_env_var_type_conversion_failure_decimal_eager():
-    os.environ["PYTTING_NO_TYPE_HINT_DECIMAL"] = "A"
+def test_env_var_type_conversion_failure_decimal_eager(monkeypatch):
+    monkeypatch.setenv("PYTTING_NO_TYPE_HINT_DECIMAL", "A")
     with pytest.raises(InvalidOperation):
         _ = Settings(lazy_load=False)
 
 
-def test_env_var_type_conversion_strict_custom_class_invalid_list_eager():
-    os.environ["PYTTING_SOME_CUSTOM_CLASS"] = '[1, 2, 3, "4"]'
+def test_env_var_type_conversion_strict_custom_class_invalid_list_eager(monkeypatch):
+    monkeypatch.setenv("PYTTING_SOME_CUSTOM_CLASS", '[1, 2, 3, "4"]')
 
     with pytest.raises(
         SettingMisconfigured,
