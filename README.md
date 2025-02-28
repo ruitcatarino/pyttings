@@ -1,4 +1,5 @@
 # Pyttings
+[![Coverage Status](https://coveralls.io/repos/github/ruitcatarino/pyttings/badge.svg?branch=main)](https://coveralls.io/github/ruitcatarino/pyttings?branch=main)
 
 Lightweight Python settings management with namespacing and modular files. Inspired by Django.
 
