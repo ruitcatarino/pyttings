@@ -1,7 +1,8 @@
 # Variables
 PYTHON = python3
 UV = uv
-PYTEST = pytest
+PYTEST = coverage run -m pytest
+TEST_REPORT = coverage report -m
 MYPY = mypy
 RUFF = ruff
 CHECKFILES = pyttings/ tests/
@@ -31,7 +32,8 @@ setup: install-uv
 
 # Run tests (pytest and mypy)
 test: setup
-	$(UV) run $(PYTEST) $(CHECKFILES)
+	$(UV) run $(PYTEST) $(CHECKFILES) -s
+	$(UV) run $(TEST_REPORT)
 	$(UV) run $(MYPY) $(CHECKFILES)
 	$(UV) run $(RUFF) format --diff $(CHECKFILES)
 	$(UV) run $(RUFF) check --select I $(CHECKFILES)
