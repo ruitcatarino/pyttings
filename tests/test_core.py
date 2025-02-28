@@ -10,8 +10,11 @@ from tests.utils import ListOfInts, MultipleArgsCustomClass
 
 
 @pytest.fixture(autouse=True)
-def clear_settings_cache():
+def reset_env_and_cache():
+    original_env = os.environ.copy()
     settings._cache = {}
+    yield
+    os.environ = original_env
 
 
 # Test missing settings module
@@ -191,7 +194,6 @@ def test_env_var_type_conversion_union_str():
 
 
 def test_env_var_type_conversion_union_dict():
-    settings._cache.pop("SOME_UNION_TYPE", None)
     os.environ["PYTTING_SOME_UNION_TYPE"] = '{"x": "y"}'
     assert settings.SOME_UNION_TYPE == {"x": "y"}
 
@@ -206,7 +208,6 @@ def test_env_var_type_conversion_strict_valid():
 
 
 def test_env_var_type_conversion_strict_list_invalid():
-    settings._cache.pop("SOME_STRICT_LIST", None)
     os.environ["PYTTING_SOME_STRICT_LIST"] = "[1, 'x', 'y']"
 
     with pytest.raises(
@@ -217,7 +218,6 @@ def test_env_var_type_conversion_strict_list_invalid():
 
 
 def test_env_var_type_conversion_strict_dict_invalid_key():
-    settings._cache.pop("SOME_STRICT_DICT", None)
     os.environ["PYTTING_SOME_STRICT_DICT"] = "{1: 1}"
 
     with pytest.raises(
@@ -228,7 +228,6 @@ def test_env_var_type_conversion_strict_dict_invalid_key():
 
 
 def test_env_var_type_conversion_strict_dict_invalid_value():
-    settings._cache.pop("SOME_STRICT_DICT", None)
     os.environ["PYTTING_SOME_STRICT_DICT"] = "{'x': 1}"
 
     with pytest.raises(
@@ -239,7 +238,6 @@ def test_env_var_type_conversion_strict_dict_invalid_value():
 
 
 def test_env_var_type_conversion_strict_dict_invalid_key_type():
-    settings._cache.pop("SOME_STRICT_DICT", None)
     os.environ["PYTTING_SOME_STRICT_DICT"] = "{1: 'x'}"
 
     with pytest.raises(
@@ -318,3 +316,40 @@ def test_env_var_type_conversion_failure_decimal():
 
     with pytest.raises(InvalidOperation):
         _ = settings.NO_TYPE_HINT_DECIMAL
+
+
+# Test eager loading
+def test_settings_eager_loading():
+    eager_settings = Settings(lazy_load=False)
+    assert eager_settings._cache == eager_settings.defaults
+
+
+def test_settings_eager_loading_override():
+    os.environ["PYTTING_DEBUG"] = "False"
+    eager_settings = Settings(lazy_load=False)
+    assert "DEBUG" in eager_settings._cache
+
+
+def test_env_var_type_conversion_strict_list_invalid_eager():
+    os.environ["PYTTING_SOME_STRICT_LIST"] = "[1, 'x', 'y']"
+    with pytest.raises(
+        SettingMisconfigured,
+        match=r"Invalid type for SOME_STRICT_LIST with configured value '.*'\.\nExpected list\[str\]\.",
+    ):
+        _ = Settings(lazy_load=False)
+
+
+def test_env_var_type_conversion_failure_decimal_eager():
+    os.environ["PYTTING_NO_TYPE_HINT_DECIMAL"] = "A"
+    with pytest.raises(InvalidOperation):
+        _ = Settings(lazy_load=False)
+
+
+def test_env_var_type_conversion_strict_custom_class_invalid_list_eager():
+    os.environ["PYTTING_SOME_CUSTOM_CLASS"] = '[1, 2, 3, "4"]'
+
+    with pytest.raises(
+        SettingMisconfigured,
+        match=r"Invalid type for SOME_CUSTOM_CLASS with configured value '.*'\.\nExpected list\[int\]\.",
+    ):
+        _ = Settings(lazy_load=False)

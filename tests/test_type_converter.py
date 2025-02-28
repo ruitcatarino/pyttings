@@ -174,6 +174,16 @@ def test_validate_container_types_dict():
     assert validate_container_types([1, 2, 3], dict, (str, int)) is False
 
 
+def test_validate_container_types_invalid():
+    # Invalid container type
+    assert validate_container_types([1, 2, 3], int, (int,)) is False
+
+
+def test_validate_container_types_no_args():
+    # Invalid container type
+    assert validate_container_types([1, 2, 3], int, None) is True
+
+
 # Test convert_and_validate function
 def test_convert_and_validate_simple_types():
     # Integer

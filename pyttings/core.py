@@ -8,11 +8,18 @@ from pyttings.type_converter import convert_and_validate
 
 
 class Settings:
-    def __init__(self) -> None:
+    CONFIGURATION_KEYS = (
+        "PYTTING_LAZY_LOAD",
+        "PYTTING_ENV_PREFIX",
+        "PYTTING_SETTINGS_MODULE",
+        "PYTTING_CUSTOM_CLASS_METHOD_NAME",
+    )
+
+    def __init__(self, lazy_load: bool = True) -> None:
         """Initialize the settings manager."""
         self._settings_module: str = self._load_settings_module()
         self._env_prefix: str = os.getenv("PYTTING_ENV_PREFIX", "PYTTING_")
-        self._cache: dict[str, Any] = {}
+        self._cache: dict[str, Any] = {} if lazy_load else self.load_settings()
 
     def _load_settings_module(self) -> str:
         """Get the settings module name from environment variable."""
@@ -45,6 +52,14 @@ class Settings:
             if not key.startswith("__") and not key.endswith("__") and key.isupper()
         }
 
+    def load_settings(self) -> dict[str, Any]:
+        """Load all settings from environment variables that match the prefix."""
+        return self.defaults | {
+            name: self.load_setting(name.replace(self._env_prefix, "", 1))
+            for name in os.environ
+            if name.startswith(self._env_prefix) and name not in self.CONFIGURATION_KEYS
+        }
+
     def get_env_var(self, name: str) -> Any | None:
         """Get and convert environment variable for a setting."""
         env_var_name = f"{self._env_prefix}{name}"
@@ -55,15 +70,16 @@ class Settings:
         expected_type = self._type_hints.get(name, type(self.defaults[name]))
         return convert_and_validate(name, value, expected_type)
 
+    def load_setting(self, name: str) -> Any:
+        """Load a single setting from environment variable defaulting to the default."""
+        value: Any | None = self.get_env_var(name)
+        if value is None and name not in self.defaults:
+            raise AttributeError(
+                f"'{self.__class__.__name__}' object has no attribute '{name}'"
+            )
+        return value if value is not None else self.defaults[name]
+
     def __getattr__(self, name: str) -> Any:
         if name not in self._cache:
-            value: Any | None = self.get_env_var(name)
-            if value is None:
-                if name in self.defaults:
-                    value = self.defaults[name]
-                else:
-                    raise AttributeError(
-                        f"'{self.__class__.__name__}' object has no attribute '{name}'"
-                    )
-            self._cache[name] = value
+            self._cache[name] = self.load_setting(name)
         return self._cache[name]

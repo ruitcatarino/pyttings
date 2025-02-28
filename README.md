@@ -86,6 +86,14 @@ You can change the method name used for custom class parsing. By default, Pyttin
 export PYTTING_CUSTOM_CLASS_METHOD_NAME="custom_method_name"
 ```
 
+### Optional: `PYTTING_LAZY_LOAD`
+
+By default, Pyttings loads settings lazily, meaning they are only loaded when accessed. This approach can enhance performance but may delay the discovery of misconfigured settings until they are actually used. If you prefer to disable lazy loading and load all settings at startup, you can do so by setting:
+
+```bash
+export PYTTING_LAZY_LOAD="False"
+```
+
 ## Advanced Features
 
 ### Automatic Type Parsing

@@ -16,6 +16,7 @@ Types of changes:
 
 ## [Unreleased](https://github.com/ruitcatarino/pyttings/compare/2.1.0...HEAD)
 ### Added
+- Add option to eager load (opposite of lazy load) the settings
 - Add coverage to the Makefile `test` step
 
 ## [2.1.0](https://github.com/ruitcatarino/pyttings/compare/2.0.0...2.1.0) - 27-02-2025
