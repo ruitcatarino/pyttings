@@ -18,3 +18,8 @@ jobs:
 
       - name: Run tests
         run: make test
+
+      - name: Upload coverage to coveralls.io
+        run: uv run coveralls
+        env:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
