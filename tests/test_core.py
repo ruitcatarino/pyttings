@@ -24,6 +24,13 @@ def test_missing_settings_module(monkeypatch):
         Settings()
 
 
+# Test not found/empty settings module
+def test_not_found_settings_module(monkeypatch):
+    monkeypatch.setenv("PYTTING_SETTINGS_MODULE", "not.found.settings.module")
+    s = Settings()
+    assert s._type_hints == {}
+
+
 # Test missing attribute
 def test_missing_attribute():
     with pytest.raises(AttributeError, match="has no attribute 'MISSING_SETTING'"):

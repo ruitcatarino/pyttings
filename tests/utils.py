@@ -46,23 +46,18 @@ class SimpleCustomClass:
         return cls(value)
 
     def __eq__(self, other):
-        if not isinstance(other, SimpleCustomClass):
-            return False
         return self.value == other.value
 
 
 class InvalidCustomClass:
+    # Missing parameter
     @classmethod
-    def __pyttings_convert__(cls):
-        # Missing parameter
-        return cls()
+    def __pyttings_convert__(cls): ...
 
 
 class UntypedCustomClass:
+    # Missing type hint
     @classmethod
-    def __pyttings_convert__(cls, value):
-        # Missing type hint
-        return cls(value)
+    def __pyttings_convert__(cls, value): ...
 
-    def __init__(self, value):
-        self.value = value
+    def __init__(self, value): ...

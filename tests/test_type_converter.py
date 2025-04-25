@@ -23,17 +23,14 @@ def test_is_custom_class():
     assert is_custom_class(str) is False
 
     # Test with different method name
-    original_method_name = os.environ.get("PYTTING_CUSTOM_CLASS_METHOD_NAME")
     try:
         os.environ["PYTTING_CUSTOM_CLASS_METHOD_NAME"] = "custom_convert"
 
         class CustomMethodClass:
             @classmethod
-            def custom_convert(cls, value: int):
-                return cls(value)
+            def custom_convert(cls, value: int): ...
 
-            def __init__(self, value):
-                self.value = value
+            def __init__(self, value): ...
 
         import pyttings.type_converter
 
@@ -42,10 +39,7 @@ def test_is_custom_class():
         assert pyttings.type_converter.is_custom_class(CustomMethodClass) is True
         assert pyttings.type_converter.is_custom_class(SimpleCustomClass) is False
     finally:
-        if original_method_name is None:
-            del os.environ["PYTTING_CUSTOM_CLASS_METHOD_NAME"]
-        else:
-            os.environ["PYTTING_CUSTOM_CLASS_METHOD_NAME"] = original_method_name
+        del os.environ["PYTTING_CUSTOM_CLASS_METHOD_NAME"]
         reload(pyttings.type_converter)
 
 
