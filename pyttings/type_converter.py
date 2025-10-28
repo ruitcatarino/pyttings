@@ -37,6 +37,18 @@ def convert_container(
     return None
 
 
+def parse_bool(value: str) -> bool:
+    """Parse boolean from common string representations."""
+    true_values = {"true", "1", "yes", "y", "on"}
+    false_values = {"false", "0", "no", "n", "off"}
+    lower_val = value.lower()
+    if lower_val in true_values:
+        return True
+    elif lower_val in false_values:
+        return False
+    raise ValueError(f"Cannot parse '{value}' as boolean")
+
+
 def validate_container_types(
     value: Any, container_type: Type[CollectionT], arg_types: tuple | None
 ) -> bool:
@@ -98,7 +110,8 @@ def handle_custom_class(name: str, value: str, cls_type: type) -> Any:
 def handle_simple_type(name: str, value: str, expected_type: type) -> Any:
     """Handle conversion for simple, non-generic types."""
     if expected_type is bool:
-        return value.lower() == "true"
+        with suppress(ValueError):
+            return parse_bool(value)
     elif expected_type is types.NoneType:
         return value
     elif expected_type in CONTAINER_TYPES:

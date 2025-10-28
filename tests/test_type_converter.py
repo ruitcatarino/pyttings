@@ -11,6 +11,7 @@ from pyttings.type_converter import (
     convert_and_validate,
     convert_container,
     is_custom_class,
+    parse_bool,
     validate_container_types,
 )
 from tests.utils import InvalidCustomClass, SimpleCustomClass, UntypedCustomClass
@@ -41,6 +42,26 @@ def test_is_custom_class():
     finally:
         del os.environ["PYTTING_CUSTOM_CLASS_METHOD_NAME"]
         reload(pyttings.type_converter)
+
+
+# Test parse_bool function
+def test_parse_bool():
+    assert parse_bool("true") is True
+    assert parse_bool("false") is False
+    assert parse_bool("True") is True
+    assert parse_bool("False") is False
+    assert parse_bool("TRUE") is True
+    assert parse_bool("FALSE") is False
+    assert parse_bool("1") is True
+    assert parse_bool("0") is False
+    assert parse_bool("yes") is True
+    assert parse_bool("no") is False
+    assert parse_bool("y") is True
+    assert parse_bool("n") is False
+    assert parse_bool("on") is True
+    assert parse_bool("off") is False
+    with pytest.raises(ValueError, match="Cannot parse 'abc' as boolean"):
+        parse_bool("abc")
 
 
 # Test convert_container function
