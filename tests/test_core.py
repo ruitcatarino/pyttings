@@ -1,4 +1,3 @@
-import os
 from decimal import Decimal, InvalidOperation
 
 import pytest
@@ -27,8 +26,8 @@ def test_missing_settings_module(monkeypatch):
 # Test not found/empty settings module
 def test_not_found_settings_module(monkeypatch):
     monkeypatch.setenv("PYTTING_SETTINGS_MODULE", "not.found.settings.module")
-    s = Settings()
-    assert s._type_hints == {}
+    with pytest.raises(ModuleNotFoundError):
+        Settings()
 
 
 # Test missing attribute

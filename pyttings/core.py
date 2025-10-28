@@ -15,7 +15,7 @@ class Settings:
         "PYTTING_CUSTOM_CLASS_METHOD_NAME",
     )
 
-    def __init__(self, lazy_load: bool = True) -> None:
+    def __init__(self, lazy_load: bool = False) -> None:
         """Initialize the settings manager."""
         self._settings_module: str = self._load_settings_module()
         self._env_prefix: str = os.getenv("PYTTING_ENV_PREFIX", "PYTTING_")

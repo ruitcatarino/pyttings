@@ -14,6 +14,8 @@ Lightweight Python settings management with namespacing and modular files. Inspi
 - **Collection Type Validation**: Ensures list, tuple, set, and dict elements match expected types.
 - **Custom Class Parsers**: Use a `__pyttings_convert__` method (or a custom-defined method) to parse settings into custom objects, configurable via `PYTTING_CUSTOM_CLASS_METHOD_NAME`.
 
+ - **Eager Loading by Default**: Settings load eagerly on import; enable lazy loading with `PYTTING_LAZY_LOAD`.
+
 ## Installation
 
 ```bash
@@ -89,10 +91,10 @@ export PYTTING_CUSTOM_CLASS_METHOD_NAME="custom_method_name"
 
 ### Optional: `PYTTING_LAZY_LOAD`
 
-By default, Pyttings loads settings lazily, meaning they are only loaded when accessed. This approach can enhance performance but may delay the discovery of misconfigured settings until they are actually used. If you prefer to disable lazy loading and load all settings at startup, you can do so by setting:
+By default, Pyttings loads settings eagerly at import time, surfacing misconfigurations early. If you prefer to enable lazy loading so settings are only evaluated when accessed, set:
 
 ```bash
-export PYTTING_LAZY_LOAD="False"
+export PYTTING_LAZY_LOAD="True"
 ```
 
 ## Advanced Features
