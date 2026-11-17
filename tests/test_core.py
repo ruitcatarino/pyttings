@@ -333,7 +333,9 @@ def test_settings_eager_loading():
 def test_settings_eager_loading_override(monkeypatch):
     monkeypatch.setenv("PYTTING_DEBUG", "False")
     eager_settings = Settings(lazy_load=False)
-    assert "DEBUG" in eager_settings._cache
+    assert eager_settings._cache["DEBUG"] is False
+    assert "PYTTING_DEBUG" not in eager_settings._cache
+    assert eager_settings.DEBUG is False
 
 
 def test_env_var_type_conversion_strict_list_invalid_eager(monkeypatch):
@@ -359,3 +361,45 @@ def test_env_var_type_conversion_strict_custom_class_invalid_list_eager(monkeypa
         match=r"Invalid type for SOME_CUSTOM_CLASS with configured value '.*'\.\nExpected list\[int\]\.",
     ):
         _ = Settings(lazy_load=False)
+
+
+# Test typed_settings returns the settings object typed as the settings module
+def test_typed_settings_returns_settings(monkeypatch):
+    import tests.settings as settings_module
+    from pyttings import typed_settings
+
+    monkeypatch.setenv("PYTTING_PORT", "9000")
+    typed = typed_settings(settings_module)
+    assert typed is settings
+    assert typed.DEBUG is True
+    assert typed.PORT == 9000
+
+
+# Test typed_settings accepts a different module whose settings all exist
+def test_typed_settings_compatible_module():
+    from types import ModuleType
+
+    from pyttings import typed_settings
+
+    other_module = ModuleType("other.settings")
+    other_module.DEBUG = False  # type: ignore[attr-defined]
+    other_module.PORT = 1  # type: ignore[attr-defined]
+    assert typed_settings(other_module) is settings
+
+
+# Test typed_settings rejects a module declaring settings that are not loaded
+def test_typed_settings_incompatible_module():
+    from types import ModuleType
+
+    from pyttings import typed_settings
+
+    other_module = ModuleType("other.settings")
+    other_module.DEBUG = False  # type: ignore[attr-defined]
+    other_module.UNKNOWN_B = 1  # type: ignore[attr-defined]
+    other_module.UNKNOWN_A = 1  # type: ignore[attr-defined]
+    with pytest.raises(
+        ValueError,
+        match="received module 'other.settings' declaring settings missing from "
+        "'tests.settings': UNKNOWN_A, UNKNOWN_B.",
+    ):
+        typed_settings(other_module)

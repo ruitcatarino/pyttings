@@ -18,6 +18,9 @@ Types of changes:
 ### Added
 - Add option to eager load (opposite of lazy load) the settings
 - Add coverage to the Makefile `test` step
+- Add `typed_settings()` helper to expose `settings` with the settings module's static types, enabling IDE "go to definition"
+### Fixed
+- Fixed eager loading ignoring environment variable overrides (values were cached under the prefixed name, e.g. `PYTTING_DEBUG` instead of `DEBUG`)
 
 ## [2.1.0](https://github.com/ruitcatarino/pyttings/compare/2.0.0...2.1.0) - 27-02-2025
 ### Fixed

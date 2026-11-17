@@ -55,9 +55,10 @@ class Settings:
     def load_settings(self) -> dict[str, Any]:
         """Load all settings from environment variables that match the prefix."""
         return self.defaults | {
-            name: self.load_setting(name.replace(self._env_prefix, "", 1))
+            setting: self.load_setting(setting)
             for name in os.environ
             if name.startswith(self._env_prefix) and name not in self.CONFIGURATION_KEYS
+            for setting in (name.removeprefix(self._env_prefix),)
         }
 
     def get_env_var(self, name: str) -> Any | None:

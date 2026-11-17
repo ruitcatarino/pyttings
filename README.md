@@ -208,6 +208,40 @@ Expected list[str].
 
 Similarly, if a custom class method does not meet the required signature (single argument with a type hint), Pyttings will raise an error.
 
+## Static Typing & IDE Navigation
+
+`settings` is resolved dynamically, so by default type checkers see every setting as `Any` and "go to definition" (Ctrl/Cmd+click) has nowhere to go. To keep the types from your settings module and jump straight to it, create a small typed entry point in your project:
+
+```python
+# myapp/conf.py
+import myapp.settings
+from pyttings import typed_settings
+
+settings = typed_settings(myapp.settings)
+```
+
+```python
+from myapp.conf import settings
+
+settings.LOG_LEVEL  # Type checker sees `str`; Ctrl+click opens myapp/settings.py
+```
+
+At runtime, `typed_settings` returns the regular pyttings `settings` object, so environment variable overrides still apply. The module you pass is normally the one in `PYTTING_SETTINGS_MODULE`, but it doesn't have to be. For example, tests can point `PYTTING_SETTINGS_MODULE` at a separate test settings module. `typed_settings` raises `ValueError` only if the module declares a setting that the loaded settings module doesn't have.
+
+> **Tips**
+> - Annotate your settings (`LOG_LEVEL: str = "INFO"`). Without an annotation, pyright infers a literal type such as `Literal[8000]` instead of `int`.
+> - `typed_settings` works with pyright, basedpyright and Pylance. mypy does not keep a module's type through a function call. For mypy, use a `TYPE_CHECKING` import instead:
+>
+>   ```python
+>   # myapp/conf.py
+>   from typing import TYPE_CHECKING
+>
+>   if TYPE_CHECKING:
+>       from myapp import settings as settings
+>   else:
+>       from pyttings import settings as settings
+>   ```
+
 ## Contributing
 
 Contributions are welcome! If you'd like to contribute to Pyttings, please follow these steps:
