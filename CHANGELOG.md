@@ -14,7 +14,9 @@ Types of changes:
 - **Security** in case of vulnerabilities.
 
 
-## [Unreleased](https://github.com/ruitcatarino/pyttings/compare/2.1.0...HEAD)
+## [Unreleased](https://github.com/ruitcatarino/pyttings/compare/2.2.0...HEAD)
+
+## [2.2.0](https://github.com/ruitcatarino/pyttings/compare/2.1.0...2.2.0) - 17-11-2026
 ### Added
 - Add option to eager load (opposite of lazy load) the settings
 - Add coverage to the Makefile `test` step
