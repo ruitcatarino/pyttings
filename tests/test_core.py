@@ -1,4 +1,4 @@
-from decimal import Decimal, InvalidOperation
+from decimal import Decimal
 
 import pytest
 
@@ -320,7 +320,7 @@ def test_env_var_type_conversion_failure_dict(monkeypatch):
 def test_env_var_type_conversion_failure_decimal(monkeypatch):
     monkeypatch.setenv("PYTTING_NO_TYPE_HINT_DECIMAL", "A")
 
-    with pytest.raises(InvalidOperation):
+    with pytest.raises(SettingMisconfigured):
         _ = settings.NO_TYPE_HINT_DECIMAL
 
 
@@ -349,7 +349,7 @@ def test_env_var_type_conversion_strict_list_invalid_eager(monkeypatch):
 
 def test_env_var_type_conversion_failure_decimal_eager(monkeypatch):
     monkeypatch.setenv("PYTTING_NO_TYPE_HINT_DECIMAL", "A")
-    with pytest.raises(InvalidOperation):
+    with pytest.raises(SettingMisconfigured):
         _ = Settings(lazy_load=False)
 
 

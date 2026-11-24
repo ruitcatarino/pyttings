@@ -236,6 +236,10 @@ def test_convert_and_validate_failures():
     ):
         convert_and_validate("TEST_FLOAT", "xyz", float)
 
+    # Invalid decimal (raises decimal.InvalidOperation, an ArithmeticError)
+    with pytest.raises(SettingMisconfigured):
+        convert_and_validate("TEST_DECIMAL", "abc", Decimal)
+
 
 def test_convert_and_validate_containers():
     # List

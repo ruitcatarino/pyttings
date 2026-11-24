@@ -19,6 +19,7 @@ Types of changes:
 - Fixed-length tuples are validated per position: `tuple[int, str]` accepts `(1, "b")`, and `tuple[int]` accepts exactly one element
 ### Fixed
 - `tuple[int, str, ...]` and other misplaced `...` are now rejected instead of being validated loosely or crashing
+- Invalid `Decimal` values raise `SettingMisconfigured` instead of leaking `decimal.InvalidOperation`
 
 ## [2.2.0](https://github.com/ruitcatarino/pyttings/compare/2.1.0...2.2.0) - 17-11-2026
 ### Added

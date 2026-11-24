@@ -125,7 +125,7 @@ def handle_simple_type(name: str, value: str, expected_type: type) -> Any:
         if converted_value is not None:
             return converted_value
     else:
-        with suppress(ValueError, TypeError):
+        with suppress(ValueError, TypeError, ArithmeticError):
             return expected_type(value)
 
     raise SettingMisconfigured(
