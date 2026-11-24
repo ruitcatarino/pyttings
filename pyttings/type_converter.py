@@ -68,6 +68,12 @@ def validate_container_types(
     if container_type in {list, tuple, set}:
         if not isinstance(value, container_type):
             return False
+        if container_type is tuple and Ellipsis not in arg_types:
+            return len(value) == len(arg_types) and all(
+                isinstance(x, t) for x, t in zip(value, arg_types)
+            )
+        if Ellipsis in arg_types and arg_types[1:] != (Ellipsis,):
+            return False
         element_type = arg_types[0]
         return all(isinstance(x, element_type) for x in value)
 

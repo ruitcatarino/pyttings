@@ -125,14 +125,46 @@ def test_validate_container_types_list():
 
 
 def test_validate_container_types_tuple():
-    # Valid homogeneous tuple
-    assert validate_container_types((1, 2, 3), tuple, (int,)) is True
     # Valid mixed tuple (when type checking is not enforced)
     assert validate_container_types((1, "a", 3.0), tuple, None) is True
-    # Invalid type
+    # tuple[int] is exactly one element
+    assert validate_container_types((1,), tuple, (int,)) is True
+    assert validate_container_types((1, 2, 3), tuple, (int,)) is False
     assert validate_container_types((1, "a", 3), tuple, (int,)) is False
     # Not a tuple
-    assert validate_container_types([1, 2, 3], tuple, (int,)) is False
+    assert validate_container_types([1], tuple, (int,)) is False
+
+
+def test_validate_container_types_fixed_length_tuple():
+    # Each position is checked against its own type and the length must match
+    assert validate_container_types((1, "a"), tuple, (int, str)) is True
+    assert validate_container_types(("a", 1), tuple, (int, str)) is False
+    assert validate_container_types((1,), tuple, (int, str)) is False
+    # tuple[()] only accepts the empty tuple
+    assert validate_container_types((), tuple, ()) is True
+    assert validate_container_types((1,), tuple, ()) is False
+
+
+def test_validate_container_types_variadic_tuple():
+    # tuple[int, ...] accepts any number of ints
+    assert validate_container_types((), tuple, (int, Ellipsis)) is True
+    assert validate_container_types((1, 2, 3), tuple, (int, Ellipsis)) is True
+    assert validate_container_types((1, "a"), tuple, (int, Ellipsis)) is False
+    # Ellipsis is only valid as tuple[T, ...]
+    assert validate_container_types((1, 1), tuple, (int, str, Ellipsis)) is False
+    assert validate_container_types((1, 1), tuple, (Ellipsis, int)) is False
+
+
+def test_convert_and_validate_tuples():
+    assert convert_and_validate("T", '(1, "b")', Tuple[int, str]) == (1, "b")
+    assert convert_and_validate("T", "(1, 2, 3)", Tuple[int, ...]) == (1, 2, 3)
+    with pytest.raises(SettingMisconfigured):
+        convert_and_validate("T", "(1, 2)", Tuple[int, str])
+    assert convert_and_validate("T", "(1,)", Tuple[int]) == (1,)
+    with pytest.raises(SettingMisconfigured):
+        convert_and_validate("T", "(1, 2)", Tuple[int])
+    with pytest.raises(SettingMisconfigured):
+        convert_and_validate("T", "(1, 1)", Tuple[int, str, ...])
 
 
 def test_validate_container_types_set():
