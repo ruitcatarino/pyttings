@@ -14,9 +14,11 @@ Types of changes:
 - **Security** in case of vulnerabilities.
 
 
-## [Unreleased](https://github.com/ruitcatarino/pyttings/compare/2.2.0...HEAD)
+## [Unreleased](https://github.com/ruitcatarino/pyttings/compare/2.3.0...HEAD)
+
+## [2.3.0](https://github.com/ruitcatarino/pyttings/compare/2.2.0...2.3.0) - 24-11-2026
 ### Changed
-- Fixed-length tuples are validated per position: `tuple[int, str]` accepts `(1, "b")`, and `tuple[int]` accepts exactly one element
+- Fixed-length tuples are validated per position: `tuple[int, str]` accepts `(1, "b")`, and `tuple[int]` accepts exactly one element (previously any number of ints)
 ### Fixed
 - `tuple[int, str, ...]` and other misplaced `...` are now rejected instead of being validated loosely or crashing
 - Invalid `Decimal` values raise `SettingMisconfigured` instead of leaking `decimal.InvalidOperation`
