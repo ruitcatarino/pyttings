@@ -82,7 +82,10 @@ def validate_container_types(
 
 def handle_union_type(name: str, value: str, union_type: type) -> Any:
     """Try to convert the value to any of the types in the union."""
+    # NoneType is skipped: it would accept any string.
     for candidate_type in get_args(union_type):
+        if candidate_type is types.NoneType:
+            continue
         with suppress(SettingMisconfigured):
             return convert_and_validate(name, value, candidate_type)
 

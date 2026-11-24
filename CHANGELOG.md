@@ -20,6 +20,7 @@ Types of changes:
 ### Fixed
 - `tuple[int, str, ...]` and other misplaced `...` are now rejected instead of being validated loosely or crashing
 - Invalid `Decimal` values raise `SettingMisconfigured` instead of leaking `decimal.InvalidOperation`
+- `Optional[int]` (and other unions with `None`) rejects invalid values instead of accepting any string
 
 ## [2.2.0](https://github.com/ruitcatarino/pyttings/compare/2.1.0...2.2.0) - 17-11-2026
 ### Added

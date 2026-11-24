@@ -2,7 +2,7 @@ import os
 import types
 from decimal import Decimal
 from importlib import reload
-from typing import Dict, List, Set, Tuple, Union
+from typing import Dict, List, Optional, Set, Tuple, Union
 
 import pytest
 
@@ -322,6 +322,11 @@ def test_convert_and_validate_union_types():
         SettingMisconfigured, match="Invalid type for TEST_UNION with configured value"
     ):
         convert_and_validate("TEST_UNION", "xyz", Union[int, float])
+
+    # Optional[int] must not accept arbitrary strings
+    assert convert_and_validate("TEST_UNION", "42", Optional[int]) == 42
+    with pytest.raises(SettingMisconfigured):
+        convert_and_validate("TEST_UNION", "abc", Optional[int])
 
 
 def test_convert_and_validate_custom_class():
