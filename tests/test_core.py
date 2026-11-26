@@ -41,11 +41,14 @@ def test_custom_prefix(monkeypatch):
     monkeypatch.setenv("PYTTING_ENV_PREFIX", "TEST_")
     monkeypatch.setenv("PYTTING_SETTINGS_MODULE", "tests.settings")
     monkeypatch.setenv("TEST_OTHER_SETTING", "test_value")
+    monkeypatch.setenv("TEST_ONLY_ANNOTATED_INT", "42")
+    monkeypatch.setenv("TEST_ONLY_ANNOTATED_LIST", "[1, 2, 3]")
     new_settings = Settings()
     assert new_settings._env_prefix == "TEST_"
     assert new_settings.DEBUG is True
     assert new_settings.DATABASE_URL == "sqlite:///db.sqlite3"
     assert new_settings.OTHER_SETTING == "test_value"
+    assert new_settings.ONLY_ANNOTATED_INT == 42
 
 
 # Test basic settings initialization
@@ -345,10 +348,54 @@ def test_env_var_type_conversion_failure_decimal(monkeypatch):
         _ = settings.NO_TYPE_HINT_DECIMAL
 
 
+# Test annotation-only settings (no default)
+def test_annotation_only_setting_converted(monkeypatch):
+    monkeypatch.setenv("PYTTING_ONLY_ANNOTATED_INT", "42")
+    new_settings = Settings(lazy_load=False)
+    assert new_settings.ONLY_ANNOTATED_INT == 42
+
+
+def test_annotation_only_setting_container_converted(monkeypatch):
+    monkeypatch.setenv("PYTTING_ONLY_ANNOTATED_LIST", "[1, 2, 3]")
+    assert settings.ONLY_ANNOTATED_LIST == [1, 2, 3]
+
+
+def test_annotation_only_setting_invalid_value(monkeypatch):
+    monkeypatch.setenv("PYTTING_ONLY_ANNOTATED_INT", "not-an-int")
+    with pytest.raises(
+        SettingMisconfigured,
+        match="Invalid type for ONLY_ANNOTATED_INT with configured value 'not-an-int'.\nExpected <class 'int'>.",
+    ):
+        _ = Settings(lazy_load=False)
+
+
+def test_annotation_only_setting_missing_eager(monkeypatch):
+    monkeypatch.delenv("PYTTING_ONLY_ANNOTATED_INT", raising=False)
+    with pytest.raises(
+        SettingMisconfigured,
+        match="Missing required setting: ONLY_ANNOTATED_INT "
+        r"\(set PYTTING_ONLY_ANNOTATED_INT or define a default\)\.",
+    ):
+        _ = Settings(lazy_load=False)
+
+
+def test_annotation_only_setting_missing_lazy(monkeypatch):
+    monkeypatch.delenv("PYTTING_ONLY_ANNOTATED_INT", raising=False)
+    lazy_settings = Settings(lazy_load=True)
+    with pytest.raises(
+        SettingMisconfigured,
+        match="Missing required setting: ONLY_ANNOTATED_INT "
+        r"\(set PYTTING_ONLY_ANNOTATED_INT or define a default\)\.",
+    ):
+        _ = lazy_settings.ONLY_ANNOTATED_INT
+
+
 # Test eager loading
 def test_settings_eager_loading():
     eager_settings = Settings(lazy_load=False)
-    assert eager_settings._cache == eager_settings.defaults
+    assert eager_settings._cache.keys() == (
+        eager_settings.defaults.keys() | eager_settings._annotation_only_settings
+    )
 
 
 def test_settings_eager_loading_override(monkeypatch):

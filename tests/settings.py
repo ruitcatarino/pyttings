@@ -4,6 +4,11 @@ from typing import Literal
 
 from tests.utils import ListOfInts, MultipleArgsCustomClass
 
+# Annotation-only settings (no default; supplied via environment variables)
+ONLY_ANNOTATED_INT: int
+ONLY_ANNOTATED_LIST: list[int]
+
+
 # Type hinted settings
 NONE_VALUE: None = None
 DEBUG: bool = True

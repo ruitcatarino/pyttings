@@ -120,6 +120,14 @@ export PYTTING_PORT="8080"
 
 Pyttings will automatically convert `PYTTING_DEBUG` to `False` (boolean) and `PYTTING_PORT` to `8080` (integer), ensuring type consistency.
 
+A setting may also be declared with only a type annotation and no default, for example:
+
+```python
+ONLY_ANNOTATED: int
+```
+
+Such settings are required. Provide the value through the environment (`export PYTTING_ONLY_ANNOTATED=42`). Missing values raise `SettingMisconfigured` at startup when eagerly loading, or on first access when lazy loading.
+
 ### Union Type Support
 
 If a setting is defined with a union type hint, Pyttings will try each type until a valid conversion is found.

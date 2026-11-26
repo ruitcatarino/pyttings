@@ -21,10 +21,12 @@ Types of changes:
 - Add `override_settings`, a test helper that works as a context manager and as a function or class decorator, with nested overrides and async support
 
 ### Changed
+- Annotation-only settings with no default are now required: eager loading raises `SettingMisconfigured` at startup when their environment variable is missing, and lazy loading raises it on first access
 - Drop Python 3.10 support; the minimum supported version is now Python 3.11
 - `make test` now runs the test suite on Python 3.11-3.14; `make test-current` runs only the current environment and is used by the CI matrix
 
 ### Fixed
+- Annotation-only settings (for example `ONLY_ANNOTATED: int` with no default) are now converted from environment variables instead of being returned as raw strings
 - Nested and parameterized containers (e.g. `list[list[int]]`, `dict[str, list[int]]`) are now validated recursively instead of raising `TypeError`; `Any`, `None`, and unions containing `Literal` inside containers are also supported
 - Custom class conversion methods now resolve postponed (`from __future__ import annotations`) and explicitly quoted parameter annotations before converting values
 

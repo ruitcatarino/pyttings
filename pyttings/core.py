@@ -4,6 +4,7 @@ from contextlib import contextmanager, suppress
 from functools import cached_property
 from typing import Any, Iterator, get_type_hints
 
+from pyttings.exceptions import SettingMisconfigured
 from pyttings.type_converter import convert_and_validate
 
 
@@ -52,33 +53,59 @@ class Settings:
             if not key.startswith("__") and not key.endswith("__") and key.isupper()
         }
 
+    @cached_property
+    def _annotation_only_settings(self) -> set[str]:
+        """Get settings declared with a type annotation but no default value."""
+        return {
+            name
+            for name in self._type_hints
+            if name.isupper() and name not in self.defaults
+        }
+
     def load_settings(self) -> dict[str, Any]:
         """Load all settings from environment variables that match the prefix."""
-        return self.defaults | {
+        settings = self.defaults | {
             setting: self.load_setting(setting)
             for name in os.environ
             if name.startswith(self._env_prefix) and name not in self.CONFIGURATION_KEYS
             for setting in (name.removeprefix(self._env_prefix),)
         }
+        for name in sorted(self._annotation_only_settings):
+            settings[name] = self.load_setting(name)
+        return settings
 
     def get_env_var(self, name: str) -> Any | None:
         """Get and convert environment variable for a setting."""
         env_var_name = f"{self._env_prefix}{name}"
         value = os.getenv(env_var_name)
 
-        if value is None or name not in self.defaults:
+        if value is None:
             return value
-        expected_type = self._type_hints.get(name, type(self.defaults[name]))
+
+        if name in self._type_hints:
+            expected_type = self._type_hints[name]
+        elif name in self.defaults:
+            expected_type = type(self.defaults[name])
+        else:
+            return value
+
         return convert_and_validate(name, value, expected_type)
 
     def load_setting(self, name: str) -> Any:
         """Load a single setting from environment variable defaulting to the default."""
         value: Any | None = self.get_env_var(name)
-        if value is None and name not in self.defaults:
-            raise AttributeError(
-                f"'{self.__class__.__name__}' object has no attribute '{name}'"
+        if value is not None:
+            return value
+        if name in self.defaults:
+            return self.defaults[name]
+        if name in self._annotation_only_settings:
+            raise SettingMisconfigured(
+                f"Missing required setting: {name} "
+                f"(set {self._env_prefix}{name} or define a default)."
             )
-        return value if value is not None else self.defaults[name]
+        raise AttributeError(
+            f"'{self.__class__.__name__}' object has no attribute '{name}'"
+        )
 
     @contextmanager
     def override(self, **overrides: Any) -> Iterator["Settings"]:
