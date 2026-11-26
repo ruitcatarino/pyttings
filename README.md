@@ -11,6 +11,7 @@ Lightweight Python settings management with namespacing and modular files. Inspi
 - **Environment Variables**: Override settings easily, with automatic type parsing.
 - **Type Hint Support**: Converts environment variables to the expected type (recommended but not required).
 - **Union Type Support**: Supports multiple possible types for a setting.
+- **Literal Type Support**: Restricts a setting to a fixed set of allowed values (e.g. strings or integers).
 - **Collection Type Validation**: Ensures list, tuple, set, and dict elements match expected types.
 - **Custom Class Parsers**: Use a `__pyttings_convert__` method (or a custom-defined method) to parse settings into custom objects, configurable via `PYTTING_CUSTOM_CLASS_METHOD_NAME`.
 
@@ -129,6 +130,26 @@ export PYTTING_SOME_UNION_TYPE='{"key": "value"}'
 ```
 
 Pyttings will first attempt to convert the value to a `dict`, succeeding if valid, or fallback to `str`.
+
+### Literal Type Support
+
+If a setting is defined with a `Literal` type hint, Pyttings only accepts the listed values and converts them to the literal's type. This works for both strings and integers (and mixed literals):
+
+```python
+from typing import Literal
+
+LOG_LEVEL: Literal["debug", "info", "warning"] = "info"
+RETRIES: Literal[1, 2, 3] = 1
+MIXED: Literal["1", 2] = "1"
+```
+
+```bash
+export PYTTING_LOG_LEVEL="warning"  # -> "warning"
+export PYTTING_RETRIES="3"          # -> 3
+export PYTTING_MIXED="2"            # -> 2 (int)
+```
+
+A value outside the allowed literals raises `SettingMisconfigured`. Literals also work inside unions and collection types, such as `list[Literal["a", "b"]]`.
 
 ### Collection Type Validation
 

@@ -67,6 +67,9 @@ def test_settings_collections():
 def test_settings_special_types():
     assert settings.NONE_VALUE is None
     assert settings.SOME_UNION_TYPE == "some_str"
+    assert settings.SOME_LITERAL == "info"
+    assert settings.SOME_LITERAL_INT == 1
+    assert settings.SOME_LITERAL_MIXED == "1"
     assert settings.SOME_DECIMAL == Decimal("1.0")
     assert settings.SOME_CUSTOM_CLASS == ListOfInts([1, 2, 3])
     assert settings.SOME_MULTIPLE_CUSTOM_CLASS == MultipleArgsCustomClass(1, "2", 3)
@@ -125,6 +128,24 @@ def test_env_var_overrides_special_types(monkeypatch):
     assert settings.NONE_VALUE == "some_value"
     assert settings.SOME_UNION_TYPE == "some_other_str"
     assert settings.SOME_DECIMAL == Decimal("2.0")
+
+
+# Test environment variable overrides - literal types
+def test_env_var_overrides_literals(monkeypatch):
+    monkeypatch.setenv("PYTTING_SOME_LITERAL", "warning")
+    monkeypatch.setenv("PYTTING_SOME_LITERAL_INT", "3")
+    monkeypatch.setenv("PYTTING_SOME_LITERAL_MIXED", "2")
+
+    assert settings.SOME_LITERAL == "warning"
+    assert settings.SOME_LITERAL_INT == 3
+    assert settings.SOME_LITERAL_MIXED == 2
+
+
+def test_env_var_type_conversion_literal_invalid(monkeypatch):
+    monkeypatch.setenv("PYTTING_SOME_LITERAL", "error")
+
+    with pytest.raises(SettingMisconfigured, match="Invalid type for SOME_LITERAL"):
+        _ = settings.SOME_LITERAL
 
 
 # Test environment variable overrides - custom classes

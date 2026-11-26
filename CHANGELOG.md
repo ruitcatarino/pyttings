@@ -16,6 +16,7 @@ Types of changes:
 
 ## [Unreleased](https://github.com/ruitcatarino/pyttings/compare/2.3.0...HEAD)
 ### Added
+- Add support for `Literal` type hints, including `str` and `int` literals, mixed literals, and literals nested in unions and collections
 - Ship a `py.typed` marker so downstream type checkers use pyttings' type annotations
 
 ## [2.3.0](https://github.com/ruitcatarino/pyttings/compare/2.2.0...2.3.0) - 24-11-2026

@@ -3,7 +3,7 @@ import inspect
 import os
 import types
 from contextlib import suppress
-from typing import Any, Type, TypeVar, Union, get_args, get_origin
+from typing import Any, Literal, Type, TypeVar, Union, get_args, get_origin
 
 from pyttings.exceptions import SettingMisconfigured
 
@@ -49,6 +49,16 @@ def parse_bool(value: str) -> bool:
     raise ValueError(f"Cannot parse '{value}' as boolean")
 
 
+def is_instance_of(value: Any, expected_type: Any) -> bool:
+    """Check a value against a type, including Literal types."""
+    if get_origin(expected_type) is Literal:
+        return any(
+            type(value) is type(literal) and value == literal
+            for literal in get_args(expected_type)
+        )
+    return isinstance(value, expected_type)
+
+
 def validate_container_types(
     value: Any, container_type: Type[CollectionT], arg_types: tuple | None
 ) -> bool:
@@ -61,7 +71,7 @@ def validate_container_types(
             return False
         key_type, value_type = arg_types
         return all(
-            isinstance(k, key_type) and isinstance(v, value_type)
+            is_instance_of(k, key_type) and is_instance_of(v, value_type)
             for k, v in value.items()
         )
 
@@ -70,12 +80,12 @@ def validate_container_types(
             return False
         if container_type is tuple and Ellipsis not in arg_types:
             return len(value) == len(arg_types) and all(
-                isinstance(x, t) for x, t in zip(value, arg_types)
+                is_instance_of(x, t) for x, t in zip(value, arg_types)
             )
         if Ellipsis in arg_types and arg_types[1:] != (Ellipsis,):
             return False
         element_type = arg_types[0]
-        return all(isinstance(x, element_type) for x in value)
+        return all(is_instance_of(x, element_type) for x in value)
 
     return False
 
@@ -116,6 +126,24 @@ def handle_custom_class(name: str, value: str, cls_type: type) -> Any:
     return method(converted_param)
 
 
+def handle_literal_type(name: str, value: str, literal_type: Any) -> Any:
+    """Try to convert the value to any of the allowed literal values."""
+    for literal in get_args(literal_type):
+        if literal is None:
+            if value == "None":
+                return None
+            continue
+        with suppress(SettingMisconfigured):
+            converted_value = convert_and_validate(name, value, type(literal))
+            if type(converted_value) is type(literal) and converted_value == literal:
+                return literal
+
+    raise SettingMisconfigured(
+        f"Invalid type for {name} with configured value '{value}'."
+        f"\nExpected {literal_type}."
+    )
+
+
 def handle_simple_type(name: str, value: str, expected_type: type) -> Any:
     """Handle conversion for simple, non-generic types."""
     if expected_type is bool:
@@ -153,11 +181,14 @@ def handle_generic_container(
     )
 
 
-def convert_and_validate(name: str, value: str, expected_type: type) -> Any:
+def convert_and_validate(name: str, value: str, expected_type: Any) -> Any:
     origin = get_origin(expected_type)
 
     if origin in UNION_TYPES:
         return handle_union_type(name, value, expected_type)
+
+    if origin is Literal:
+        return handle_literal_type(name, value, expected_type)
 
     if origin is None:
         if is_custom_class(expected_type):

@@ -2,7 +2,7 @@ import os
 import types
 from decimal import Decimal
 from importlib import reload
-from typing import Dict, List, Optional, Set, Tuple, Union
+from typing import Dict, List, Literal, Optional, Set, Tuple, Union
 
 import pytest
 
@@ -327,6 +327,97 @@ def test_convert_and_validate_union_types():
     assert convert_and_validate("TEST_UNION", "42", Optional[int]) == 42
     with pytest.raises(SettingMisconfigured):
         convert_and_validate("TEST_UNION", "abc", Optional[int])
+
+
+def test_convert_and_validate_literal_types():
+    # String literals
+    assert convert_and_validate("TEST_LITERAL", "a", Literal["a", "b"]) == "a"
+    # Integer literals
+    assert convert_and_validate("TEST_LITERAL", "1", Literal[1, 2]) == 1
+    # The converted value keeps the literal's type
+    assert convert_and_validate("TEST_LITERAL", "True", Literal[True]) is True
+    # Mixed literals use the literal's own type, so "1" stays a string
+    assert convert_and_validate("TEST_LITERAL", "1", Literal["1", 2]) == "1"
+    assert type(convert_and_validate("TEST_LITERAL", "1", Literal["1", 2])) is str
+    assert convert_and_validate("TEST_LITERAL", "2", Literal["1", 2]) == 2
+    # None literals
+    assert convert_and_validate("TEST_LITERAL", "None", Literal[None, "a"]) is None
+    # A non-None value does not match a None literal
+    with pytest.raises(SettingMisconfigured):
+        convert_and_validate("TEST_LITERAL", "a", Literal[None])
+
+    # Values outside the allowed literals are rejected
+    with pytest.raises(SettingMisconfigured, match="Invalid type for TEST_LITERAL"):
+        convert_and_validate("TEST_LITERAL", "c", Literal["a", "b"])
+    with pytest.raises(SettingMisconfigured):
+        convert_and_validate("TEST_LITERAL", "3", Literal[1, 2])
+    # Booleans are not integers for Literal matching
+    with pytest.raises(SettingMisconfigured):
+        convert_and_validate("TEST_LITERAL", "True", Literal[1])
+
+
+def test_convert_and_validate_literal_inside_union():
+    union_type = Union[Literal["a", "b"], int]
+    assert convert_and_validate("TEST_LITERAL", "a", union_type) == "a"
+    assert convert_and_validate("TEST_LITERAL", "42", union_type) == 42
+    with pytest.raises(SettingMisconfigured):
+        convert_and_validate("TEST_LITERAL", "c", union_type)
+
+
+def test_convert_and_validate_list_of_literals():
+    # typing.List
+    assert convert_and_validate(
+        "TEST_LITERAL", '["a", "b"]', List[Literal["a", "b"]]
+    ) == ["a", "b"]
+    assert convert_and_validate("TEST_LITERAL", "[1, 3]", List[Literal[1, 2, 3]]) == [
+        1,
+        3,
+    ]
+    assert convert_and_validate("TEST_LITERAL", '["1", 2]', List[Literal["1", 2]]) == [
+        "1",
+        2,
+    ]
+    assert convert_and_validate("TEST_LITERAL", "[]", List[Literal["a"]]) == []
+    with pytest.raises(SettingMisconfigured):
+        convert_and_validate("TEST_LITERAL", '["a", "c"]', List[Literal["a", "b"]])
+    with pytest.raises(SettingMisconfigured):
+        convert_and_validate("TEST_LITERAL", "[1, 4]", List[Literal[1, 2, 3]])
+    with pytest.raises(SettingMisconfigured):
+        convert_and_validate("TEST_LITERAL", "[True]", List[Literal[1]])
+
+    # built-in list
+    assert convert_and_validate(
+        "TEST_LITERAL", '["a", "b"]', list[Literal["a", "b"]]
+    ) == ["a", "b"]
+    assert convert_and_validate("TEST_LITERAL", "[1, 3]", list[Literal[1, 2, 3]]) == [
+        1,
+        3,
+    ]
+    assert convert_and_validate("TEST_LITERAL", '["1", 2]', list[Literal["1", 2]]) == [
+        "1",
+        2,
+    ]
+    assert convert_and_validate("TEST_LITERAL", "[]", list[Literal["a"]]) == []
+    with pytest.raises(SettingMisconfigured):
+        convert_and_validate("TEST_LITERAL", '["a", "c"]', list[Literal["a", "b"]])
+    with pytest.raises(SettingMisconfigured):
+        convert_and_validate("TEST_LITERAL", "[1, 4]", list[Literal[1, 2, 3]])
+    with pytest.raises(SettingMisconfigured):
+        convert_and_validate("TEST_LITERAL", "[True]", list[Literal[1]])
+
+
+def test_convert_and_validate_containers_with_literals():
+    assert convert_and_validate(
+        "TEST_LITERAL", '{"a": 1}', Dict[Literal["a", "b"], Literal[1, 2]]
+    ) == {"a": 1}
+    assert convert_and_validate(
+        "TEST_LITERAL", '("a", 2)', Tuple[Literal["a", "b"], Literal[1, 2]]
+    ) == ("a", 2)
+
+    with pytest.raises(SettingMisconfigured):
+        convert_and_validate(
+            "TEST_LITERAL", '{"a": 3}', Dict[Literal["a", "b"], Literal[1, 2]]
+        )
 
 
 def test_convert_and_validate_custom_class():
