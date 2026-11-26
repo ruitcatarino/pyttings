@@ -25,6 +25,7 @@ Types of changes:
 - `make test` now runs the test suite on Python 3.11-3.14; `make test-current` runs only the current environment and is used by the CI matrix
 
 ### Fixed
+- Nested and parameterized containers (e.g. `list[list[int]]`, `dict[str, list[int]]`) are now validated recursively instead of raising `TypeError`; `Any`, `None`, and unions containing `Literal` inside containers are also supported
 - Custom class conversion methods now resolve postponed (`from __future__ import annotations`) and explicitly quoted parameter annotations before converting values
 
 ## [2.3.0](https://github.com/ruitcatarino/pyttings/compare/2.2.0...2.3.0) - 24-11-2026
