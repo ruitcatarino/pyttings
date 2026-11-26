@@ -37,3 +37,6 @@ Issues = "https://github.com/ruitcatarino/pyttings/issues"
 
 [tool.setuptools]
 packages = ["pyttings"]
+
+[tool.setuptools.package-data]
+pyttings = ["py.typed"]
