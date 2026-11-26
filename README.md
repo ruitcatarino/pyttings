@@ -14,6 +14,7 @@ Lightweight Python settings management with namespacing and modular files. Inspi
 - **Literal Type Support**: Restricts a setting to a fixed set of allowed values (e.g. strings or integers).
 - **Collection Type Validation**: Ensures list, tuple, set, and dict elements match expected types.
 - **Custom Class Parsers**: Use a `__pyttings_convert__` method (or a custom-defined method) to parse settings into custom objects, configurable via `PYTTING_CUSTOM_CLASS_METHOD_NAME`.
+- **Test Overrides**: Temporarily override settings with an `override_settings` decorator or context manager.
 
  - **Eager Loading by Default**: Settings load eagerly on import; enable lazy loading with `PYTTING_LAZY_LOAD`.
 
@@ -228,6 +229,28 @@ Expected list[str].
 ```
 
 Similarly, if a custom class method does not meet the required signature (single argument with a type hint), Pyttings will raise an error.
+
+## Overriding Settings in Tests
+
+Use `override_settings` to temporarily replace setting values in tests. It works as a context manager and as a function or class decorator, restores the previous values even if the test raises, supports nested overrides, and takes precedence over environment variables.
+
+```python
+from pyttings import override_settings, settings
+
+@override_settings(DEBUG=False, PORT=9000)
+def test_api_uses_test_config():
+    assert settings.DEBUG is False
+    assert settings.PORT == 9000
+
+
+def test_with_context_manager():
+    with override_settings(PORT=9000):
+        assert settings.PORT == 9000
+```
+
+Class decorators wrap methods whose names start with `test` and common setup/teardown methods (`setUp`, `tearDown`, `setup_method`, `teardown_method`, `asyncSetUp`, `asyncTearDown`). Class-level fixtures are not wrapped. Async test functions are supported.
+
+Overrides are applied to the shared settings cache and are not written to `os.environ`, so they are not thread-safe. Unknown setting names are added temporarily and restored or removed when the override exits. Any `Settings` instance also provides the same mechanism through its `.override(...)` method.
 
 ## Static Typing & IDE Navigation
 

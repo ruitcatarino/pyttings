@@ -1,8 +1,8 @@
 import importlib
 import os
-from contextlib import suppress
+from contextlib import contextmanager, suppress
 from functools import cached_property
-from typing import Any, get_type_hints
+from typing import Any, Iterator, get_type_hints
 
 from pyttings.type_converter import convert_and_validate
 
@@ -79,6 +79,16 @@ class Settings:
                 f"'{self.__class__.__name__}' object has no attribute '{name}'"
             )
         return value if value is not None else self.defaults[name]
+
+    @contextmanager
+    def override(self, **overrides: Any) -> Iterator["Settings"]:
+        """Temporarily override setting values, restoring them on exit."""
+        previous = self._cache
+        self._cache = {**previous, **overrides}
+        try:
+            yield self
+        finally:
+            self._cache = previous
 
     def __getattr__(self, name: str) -> Any:
         if name not in self._cache:
