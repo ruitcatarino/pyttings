@@ -2,7 +2,7 @@ import os
 import types
 from decimal import Decimal
 from importlib import reload
-from typing import Dict, List, Literal, Optional, Set, Tuple, Union
+from typing import Any, Dict, List, Literal, Optional, Set, Tuple, Union
 
 import pytest
 
@@ -207,6 +207,34 @@ def test_validate_container_types_no_args():
     assert validate_container_types([1, 2, 3], int, None) is True
 
 
+def test_validate_container_types_nested():
+    # Nested lists are validated recursively
+    assert validate_container_types([[1, 2], [3]], list, (list[int],)) is True
+    assert validate_container_types([[1, 2], [3, "a"]], list, (list[int],)) is False
+    # Nested dict values are validated recursively
+    assert validate_container_types({"a": [1, 2]}, dict, (str, list[int])) is True
+    assert validate_container_types({"a": [1, "b"]}, dict, (str, list[int])) is False
+    # Nested dict keys are validated recursively
+    assert validate_container_types({("a",): 1}, dict, (tuple[str], int)) is True
+    assert validate_container_types({("a", 1): 1}, dict, (tuple[str], int)) is False
+
+
+def test_validate_container_types_any_and_none():
+    # Any accepts every element
+    assert validate_container_types([1, "a", None], list, (Any,)) is True
+    # None only accepts None elements
+    assert validate_container_types([None, None], list, (None,)) is True
+    assert validate_container_types([None, 1], list, (None,)) is False
+
+
+def test_validate_container_types_union_with_literal():
+    union_type = Union[Literal["a", "b"], int]
+    assert validate_container_types([1, "a"], list, (union_type,)) is True
+    assert validate_container_types(["b"], list, (union_type,)) is True
+    assert validate_container_types(["c"], list, (union_type,)) is False
+    assert validate_container_types([1.0], list, (union_type,)) is False
+
+
 # Test convert_and_validate function
 def test_convert_and_validate_simple_types():
     # Integer
@@ -304,6 +332,39 @@ def test_convert_and_validate_typed_containers():
         SettingMisconfigured, match="Invalid type for TEST_DICT with configured value"
     ):
         convert_and_validate("TEST_DICT", '{"a": "1", "b": "2"}', dict_str_int_type)
+
+
+def test_convert_and_validate_nested_containers():
+    assert convert_and_validate("TEST_LIST", "[[1, 2], [3]]", list[list[int]]) == [
+        [1, 2],
+        [3],
+    ]
+    with pytest.raises(SettingMisconfigured, match="Invalid type for TEST_LIST"):
+        convert_and_validate("TEST_LIST", "[[1, 2], [3, 'a']]", list[list[int]])
+
+    assert convert_and_validate("TEST_DICT", '{"a": [1, 2]}', dict[str, list[int]]) == {
+        "a": [1, 2]
+    }
+    with pytest.raises(SettingMisconfigured, match="Invalid type for TEST_DICT"):
+        convert_and_validate("TEST_DICT", '{"a": [1, "b"]}', dict[str, list[int]])
+
+
+def test_convert_and_validate_any_and_none_containers():
+    assert convert_and_validate("TEST_LIST", '[1, "a", None]', list[Any]) == [
+        1,
+        "a",
+        None,
+    ]
+    assert convert_and_validate("TEST_LIST", "[None, None]", list[None]) == [None, None]
+    with pytest.raises(SettingMisconfigured, match="Invalid type for TEST_LIST"):
+        convert_and_validate("TEST_LIST", "[None, 1]", list[None])
+
+
+def test_convert_and_validate_union_with_literal_container():
+    union_type = list[Union[Literal["a", "b"], int]]
+    assert convert_and_validate("TEST_LIST", '[1, "a"]', union_type) == [1, "a"]
+    with pytest.raises(SettingMisconfigured, match="Invalid type for TEST_LIST"):
+        convert_and_validate("TEST_LIST", '["c"]', union_type)
 
 
 def test_convert_and_validate_union_types():

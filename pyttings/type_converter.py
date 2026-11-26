@@ -59,13 +59,31 @@ def parse_bool(value: str) -> bool:
 
 
 def is_instance_of(value: Any, expected_type: Any) -> bool:
-    """Check a value against a type, including Literal types."""
-    if get_origin(expected_type) is Literal:
+    """Check a value against a type, including nested containers and Literal types."""
+    if expected_type is Any:
+        return True
+    if expected_type is None or expected_type is types.NoneType:
+        return value is None
+
+    origin = get_origin(expected_type)
+
+    if origin in UNION_TYPES:
+        return any(
+            is_instance_of(value, candidate_type)
+            for candidate_type in get_args(expected_type)
+        )
+    if origin is Literal:
         return any(
             type(value) is type(literal) and value == literal
             for literal in get_args(expected_type)
         )
-    return isinstance(value, expected_type)
+    if origin in CONTAINER_TYPES:
+        return validate_container_types(value, origin, get_args(expected_type))
+
+    try:
+        return isinstance(value, expected_type)
+    except TypeError:
+        return False
 
 
 def validate_container_types(
