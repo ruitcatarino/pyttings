@@ -26,7 +26,7 @@ jobs:
         run: uv sync --all-extras --dev
 
       - name: Run tests
-        run: make test
+        run: make test-current
 
       - name: Upload coverage to coveralls.io
         if: matrix.python-version == '3.14'

@@ -6,6 +6,7 @@ TEST_REPORT = coverage report -m
 MYPY = mypy
 RUFF = ruff
 CHECKFILES = pyttings/ tests/
+PYTHON_VERSIONS ?= 3.11 3.12 3.13 3.14
 
 UV_INSTALLED := $(shell command -v $(UV) 2> /dev/null)
 
@@ -30,13 +31,24 @@ endif
 setup: install-uv
 	$(UV) sync --all-extras --dev
 
-# Run tests (pytest and mypy)
-test: setup
+# Run tests on the current Python environment (pytest and mypy)
+test-current: setup
 	$(UV) run $(PYTEST) $(CHECKFILES) -s
 	$(UV) run $(TEST_REPORT)
 	$(UV) run $(MYPY) $(CHECKFILES)
 	$(UV) run $(RUFF) format --diff $(CHECKFILES)
 	$(UV) run $(RUFF) check --select I $(CHECKFILES)
+
+# Run pytest on every supported Python version
+test-versions:
+	@for version in $(PYTHON_VERSIONS); do \
+		echo "Testing with Python $$version"; \
+		PYTHONPATH=. $(UV) run --python $$version --no-project --with pytest \
+			python -m pytest $(CHECKFILES) -q || exit 1; \
+	done
+
+# Run tests on the current environment and all supported Python versions
+test: test-current test-versions
 
 # Format and lint code (ruff)
 style: setup
@@ -46,7 +58,9 @@ style: setup
 # Help message
 help:
 	@echo "Available targets:"
-	@echo "  setup       - Set up the environment and install dependencies using uv"
-	@echo "  test        - Run tests with pytest and mypy"
-	@echo "  style       - Format and lint code with ruff"
-	@echo "  help        - Show this help message"
+	@echo "  setup         - Set up the environment and install dependencies using uv"
+	@echo "  test          - Run tests on the current environment and all supported versions"
+	@echo "  test-current  - Run tests with pytest and mypy on the current environment"
+	@echo "  test-versions - Run pytest on Python $(PYTHON_VERSIONS)"
+	@echo "  style         - Format and lint code with ruff"
+	@echo "  help          - Show this help message"

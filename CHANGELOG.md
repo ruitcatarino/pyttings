@@ -22,6 +22,7 @@ Types of changes:
 
 ### Changed
 - Drop Python 3.10 support; the minimum supported version is now Python 3.11
+- `make test` now runs the test suite on Python 3.11-3.14; `make test-current` runs only the current environment and is used by the CI matrix
 
 ### Fixed
 - Custom class conversion methods now resolve postponed (`from __future__ import annotations`) and explicitly quoted parameter annotations before converting values
