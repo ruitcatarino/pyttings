@@ -18,6 +18,7 @@ Types of changes:
 ### Added
 - Add support for `Literal` type hints, including `str` and `int` literals, mixed literals, and literals nested in unions and collections
 - Ship a `py.typed` marker so downstream type checkers use pyttings' type annotations
+- Add `override_settings`, a test helper that works as a context manager and as a function or class decorator, with nested overrides and async support
 
 ## [2.3.0](https://github.com/ruitcatarino/pyttings/compare/2.2.0...2.3.0) - 24-11-2026
 ### Changed

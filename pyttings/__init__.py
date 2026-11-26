@@ -5,6 +5,7 @@ from typing import TypeVar, cast
 from pyttings.type_converter import parse_bool
 
 from .core import Settings
+from .testing import override_settings
 
 settings = Settings(lazy_load=parse_bool(os.getenv("PYTTING_LAZY_LOAD", "False")))
 
@@ -34,4 +35,4 @@ def typed_settings(module: _ModuleT) -> _ModuleT:
     return cast(_ModuleT, settings)
 
 
-__all__ = ["settings", "typed_settings"]
+__all__ = ["override_settings", "settings", "typed_settings"]
