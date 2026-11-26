@@ -14,7 +14,13 @@ from pyttings.type_converter import (
     parse_bool,
     validate_container_types,
 )
-from tests.utils import InvalidCustomClass, SimpleCustomClass, UntypedCustomClass
+from tests.postponed_annotations import PostponedListOfInts
+from tests.utils import (
+    InvalidCustomClass,
+    QuotedAnnotationCustomClass,
+    SimpleCustomClass,
+    UntypedCustomClass,
+)
 
 
 # Test is_custom_class function
@@ -444,3 +450,25 @@ def test_convert_and_validate_custom_class():
         SettingMisconfigured, match="Invalid method signature for.*Expected a type hint"
     ):
         convert_and_validate("TEST_CUSTOM", "[1, 2, 3]", UntypedCustomClass)
+
+
+def test_convert_and_validate_custom_class_quoted_annotation():
+    converted = convert_and_validate(
+        "TEST_CUSTOM", "[1, 2, 3]", QuotedAnnotationCustomClass
+    )
+    assert converted == QuotedAnnotationCustomClass([1, 2, 3])
+
+    with pytest.raises(
+        SettingMisconfigured, match="Invalid type for TEST_CUSTOM with configured value"
+    ):
+        convert_and_validate("TEST_CUSTOM", '["a", "b"]', QuotedAnnotationCustomClass)
+
+
+def test_convert_and_validate_custom_class_postponed_annotations():
+    converted = convert_and_validate("TEST_CUSTOM", "[1, 2, 3]", PostponedListOfInts)
+    assert converted == PostponedListOfInts([1, 2, 3])
+
+    with pytest.raises(
+        SettingMisconfigured, match="Invalid type for TEST_CUSTOM with configured value"
+    ):
+        convert_and_validate("TEST_CUSTOM", '["a", "b"]', PostponedListOfInts)

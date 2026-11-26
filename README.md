@@ -20,6 +20,8 @@ Lightweight Python settings management with namespacing and modular files. Inspi
 
 ## Installation
 
+Requires Python 3.11 or newer.
+
 ```bash
 pip install pyttings
 ```

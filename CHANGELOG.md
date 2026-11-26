@@ -20,6 +20,12 @@ Types of changes:
 - Ship a `py.typed` marker so downstream type checkers use pyttings' type annotations
 - Add `override_settings`, a test helper that works as a context manager and as a function or class decorator, with nested overrides and async support
 
+### Changed
+- Drop Python 3.10 support; the minimum supported version is now Python 3.11
+
+### Fixed
+- Custom class conversion methods now resolve postponed (`from __future__ import annotations`) and explicitly quoted parameter annotations before converting values
+
 ## [2.3.0](https://github.com/ruitcatarino/pyttings/compare/2.2.0...2.3.0) - 24-11-2026
 ### Changed
 - Fixed-length tuples are validated per position: `tuple[int, str]` accepts `(1, "b")`, and `tuple[int]` accepts exactly one element (previously any number of ints)

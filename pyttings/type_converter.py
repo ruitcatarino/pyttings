@@ -3,7 +3,16 @@ import inspect
 import os
 import types
 from contextlib import suppress
-from typing import Any, Literal, Type, TypeVar, Union, get_args, get_origin
+from typing import (
+    Any,
+    Literal,
+    Type,
+    TypeVar,
+    Union,
+    get_args,
+    get_origin,
+    get_type_hints,
+)
 
 from pyttings.exceptions import SettingMisconfigured
 
@@ -122,7 +131,13 @@ def handle_custom_class(name: str, value: str, cls_type: type) -> Any:
             f"Expected a type hint for the parameter."
         )
 
-    converted_param = convert_and_validate(name, value, param.annotation)
+    # Resolve postponed and explicitly quoted annotations, falling back to the
+    # raw annotation when it cannot be evaluated (e.g. an unresolved forward ref).
+    annotation = param.annotation
+    with suppress(NameError, TypeError):
+        annotation = get_type_hints(method).get(param.name, annotation)
+
+    converted_param = convert_and_validate(name, value, annotation)
     return method(converted_param)
 
 
