@@ -1,8 +1,9 @@
 import inspect
+from collections.abc import Callable
 from contextlib import ExitStack
 from functools import wraps
 from types import TracebackType
-from typing import Any, Callable, TypeVar, cast
+from typing import Any, TypeVar, cast
 
 from pyttings.core import Settings
 

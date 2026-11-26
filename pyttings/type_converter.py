@@ -3,7 +3,7 @@ import inspect
 import os
 import types
 from contextlib import suppress
-from typing import Any, Literal, Type, TypeVar, Union, get_args, get_origin
+from typing import Any, Literal, TypeVar, Union, get_args, get_origin
 
 from pyttings.exceptions import SettingMisconfigured
 
@@ -24,7 +24,7 @@ def is_custom_class(expected_type: type) -> bool:
 
 
 def convert_container(
-    value: str, expected_type: Type[CollectionT]
+    value: str, expected_type: type[CollectionT]
 ) -> CollectionT | None:
     """Try to convert a string to a container type using ast.literal_eval."""
     with suppress(SyntaxError, ValueError, TypeError):
@@ -60,7 +60,7 @@ def is_instance_of(value: Any, expected_type: Any) -> bool:
 
 
 def validate_container_types(
-    value: Any, container_type: Type[CollectionT], arg_types: tuple | None
+    value: Any, container_type: type[CollectionT], arg_types: tuple | None
 ) -> bool:
     """Validate that container elements match their expected types."""
     if arg_types is None:

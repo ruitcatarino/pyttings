@@ -1,8 +1,9 @@
 import importlib
 import os
+from collections.abc import Iterator
 from contextlib import contextmanager, suppress
 from functools import cached_property
-from typing import Any, Iterator, get_type_hints
+from typing import Any, get_type_hints
 
 from pyttings.type_converter import convert_and_validate
 
