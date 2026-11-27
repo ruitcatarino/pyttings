@@ -14,7 +14,9 @@ Types of changes:
 - **Security** in case of vulnerabilities.
 
 
-## [Unreleased](https://github.com/ruitcatarino/pyttings/compare/2.3.0...HEAD)
+## [Unreleased](https://github.com/ruitcatarino/pyttings/compare/3.0.0...HEAD)
+
+## [3.0.0](https://github.com/ruitcatarino/pyttings/compare/2.3.0...3.0.0) - 27-11-2026
 ### Added
 - Add support for `Literal` type hints, including `str` and `int` literals, mixed literals, and literals nested in unions and collections
 - Ship a `py.typed` marker so downstream type checkers use pyttings' type annotations
